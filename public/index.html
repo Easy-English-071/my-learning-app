@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ thống học tập A1</title>
-    <!-- [MỚI] Thêm Favicon cho trang web -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📚</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* --- Giao diện Glassmorphism V10 (dựa trên mẫu) --- */
         :root {
@@ -314,7 +313,6 @@
         .gram-message.ai strong { color: var(--accent-primary); }
         .gram-message.ai code { background-color: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
         
-        /* [MỚI] CSS cho chỉ báo đang chờ */
         .gram-message.thinking span {
             display: inline-block;
             width: 8px;
@@ -412,7 +410,6 @@
                     <div id="content-body-wrapper">
                         <div id="content-body"></div>
                     </div>
-                    <!-- [KHÔI PHỤC] Media Player -->
                     <div id="media-player-container" style="display: none;">
                         <label for="media-upload-input" id="upload-label">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -449,7 +446,6 @@
 
     <!-- Gram Assistant -->
     <button id="gram-assistant-fab" title="Grammar Assistant">
-        <!-- [MỚI] Icon Chat -->
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
         </svg>
@@ -476,6 +472,7 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
+        // [KHÔI PHỤC] Dữ liệu bài học đã được thêm lại vào đây
         const lessonsData = {
             1: {
                 title: "Lesson 1: Hello",
@@ -2295,7 +2292,6 @@
 </div>`
                 }
             }
-
         };
 
         // --- DOM Elements --- //
@@ -2316,7 +2312,6 @@
         const gramSendBtn = document.getElementById('gram-send-btn');
         
         let currentLessonId = null;
-        // [MỚI] Biến trạng thái để kiểm soát lời chào
         let isFirstGramQuery = true;
 
         // --- View Management --- //
@@ -2391,12 +2386,12 @@
         }
 
         function addMessageToChat(message, sender) {
-             const messageDiv = document.createElement('div');
-             messageDiv.className = `gram-message ${sender}`;
-             messageDiv.innerHTML = message;
-             gramChatHistory.appendChild(messageDiv);
-             gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
-             return messageDiv;
+              const messageDiv = document.createElement('div');
+              messageDiv.className = `gram-message ${sender}`;
+              messageDiv.innerHTML = message;
+              gramChatHistory.appendChild(messageDiv);
+              gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
+              return messageDiv;
         }
 
         function showThinkingIndicator() {
@@ -2404,14 +2399,13 @@
             return thinkingDiv;
         }
 
-        // [SỬA LỖI] Hàm hiển thị câu trả lời theo hiệu ứng gõ chữ, xử lý đúng thẻ HTML
         function streamMessage(element, text) {
             const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-            element.innerHTML = ''; // Xóa nội dung cũ (dấu chấm)
-            element.classList.remove('thinking'); // Xóa class 'thinking' để dừng animation
+            element.innerHTML = ''; 
+            element.classList.remove('thinking'); 
             
             let i = 0;
-            const speed = 20; // Tốc độ gõ chữ (ms)
+            const speed = 20;
 
             function typeWriter() {
                 if (i < formattedText.length) {
@@ -2441,7 +2435,6 @@
             gramSendBtn.disabled = true;
             gramInput.disabled = true;
 
-            // [SỬA LỖI] Prompt được cải tiến để không chào lại
             const basePrompt = `Bạn là trợ lý ngữ pháp "Gram", nói chuyện với người học tiếng Anh trình độ A1. Xưng hô là "bạn".
 Hãy giải thích ngữ pháp cho câu sau đây bằng **tiếng Việt**.
 **Yêu cầu:**
@@ -2452,15 +2445,10 @@ Hãy giải thích ngữ pháp cho câu sau đây bằng **tiếng Việt**.
 
             let finalPrompt;
             if (isFirstGramQuery) {
-                finalPrompt = `${basePrompt}
----
-Hãy giải thích câu: "${sentence}"`;
+                finalPrompt = `${basePrompt}\n---\nHãy giải thích câu: "${sentence}"`;
                 isFirstGramQuery = false;
             } else {
-                finalPrompt = `${basePrompt}
-**Lưu ý quan trọng:** Không cần câu chào hỏi, hãy đi thẳng vào phần giải thích ngữ pháp.
----
-Hãy giải thích câu: "${sentence}"`;
+                finalPrompt = `${basePrompt}\n**Lưu ý quan trọng:** Không cần câu chào hỏi, hãy đi thẳng vào phần giải thích ngữ pháp.\n---\nHãy giải thích câu: "${sentence}"`;
             }
 
             const payload = { contents: [{ role: "user", parts: [{ text: finalPrompt }] }] };
@@ -2522,42 +2510,17 @@ Hãy giải thích câu: "${sentence}"`;
         });
 
         // --- Gemini API Call --- //
-        // [SỬA ĐỔI] Hàm này giờ sẽ gọi đến proxy của chúng ta thay vì Google API trực tiếp
-async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-    // URL của proxy function bạn vừa tạo.
-    // Trình duyệt sẽ tự động hiểu đây là một yêu cầu đến cùng tên miền.
-    const proxyApiUrl = '/api/proxy'; 
-    
-    try {
-        // Không cần apiKey ở đây nữa!
-        const response = await fetch(proxyApiUrl, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            // Gửi payload chứa prompt đến proxy
-            body: JSON.stringify(payload) 
-        });
-
-        if (!response.ok) {
-            // Xử lý lỗi nếu proxy hoặc API Gemini gặp sự cố
-            if (response.status === 429 && retries > 0) {
-                await new Promise(r => setTimeout(r, delay));
-                return callGeminiAPI(payload, retries - 1, delay * 2);
-            }
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
-        }
-        return await response.json();
-    } catch (error) {
-        if (retries > 0) {
-            await new Promise(r => setTimeout(r, delay));
-            return callGeminiAPI(payload, retries - 1, delay * 2);
-        }
-        console.error("API call failed after retries:", error);
-        throw error;
-    }
-}
+        // [ĐÃ SỬA] Hàm này giờ sẽ gọi đến proxy của chúng ta thay vì Google API trực tiếp
+        async function callGeminiAPI(payload, retries = 3, delay = 1000) {
+            const proxyApiUrl = '/api/proxy'; 
             
             try {
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const response = await fetch(proxyApiUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
+
                 if (!response.ok) {
                     if (response.status === 429 && retries > 0) {
                         await new Promise(r => setTimeout(r, delay));

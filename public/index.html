@@ -141,11 +141,18 @@
             border-right: 1px solid rgba(0,0,0,0.1); text-align: left;
         }
         .message { flex: 1; text-align: left; word-break: break-word; }
+        /* [SỬA LỖI] Tinh chỉnh giao diện highlight */
         .highlight {
-            background-color: rgba(255, 204, 0, 0.3); border-radius: 4px; padding: 0 2px;
-            cursor: pointer; position: relative; display: inline-block; transition: background-color 0.2s;
+            background-color: rgba(255, 204, 0, 0.2); /* Nhạt hơn */
+            border-radius: 4px;
+            padding: 1px 4px; /* Giảm chiều cao */
+            line-height: 1.4;
+            cursor: pointer;
+            position: relative;
+            display: inline-block;
+            transition: background-color 0.2s;
         }
-        .highlight:hover { background-color: rgba(255, 204, 0, 0.5); }
+        .highlight:hover { background-color: rgba(255, 204, 0, 0.4); }
         .tooltip {
             position: absolute; background: rgba(249, 249, 249, 0.85);
             -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
@@ -153,7 +160,7 @@
             width: 300px; z-index: 100; opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             pointer-events: none; font-size: 14px; border: 1px solid rgba(0, 0, 0, 0.05);
-            text-align: left; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+            text-align: left;
         }
         .tooltip.tooltip-visible { opacity: 1; visibility: visible; }
         .tooltip span { display: block; margin-bottom: 6px; }
@@ -369,10 +376,9 @@
         #gram-send-btn { flex-shrink: 0; padding: 0.75rem; }
         #gram-send-btn svg { width: 20px; height: 20px; }
 
-        /* [SỬA LỖI] CSS cho Menu Ngữ cảnh */
         #selection-menu {
             position: absolute;
-            display: none; /* Sửa lỗi: đảm bảo menu ẩn ban đầu */
+            display: none;
             background-color: var(--glass-bg);
             border: 1px solid var(--glass-border);
             border-radius: var(--radius-sm);
@@ -381,8 +387,9 @@
             -webkit-backdrop-filter: blur(12px);
             z-index: 1002;
             padding: 0.5rem;
+            display: none;
             gap: 0.5rem;
-            transform: translateX(-50%); /* Dùng để căn giữa theo chiều ngang */
+            transform: translateX(-50%);
         }
         .selection-menu-btn {
             background: none;
@@ -2410,10 +2417,31 @@
             } else {
                 mediaPlayerContainer.style.display = 'none';
             }
-            initializeTooltips();
+            initializeStaticTooltips(); // [SỬA LỖI] Gọi hàm khôi phục tooltip
             showView('content');
         }
-        function initializeTooltips() { /* Logic cũ vẫn hoạt động cho từ đơn */ }
+        
+        // [SỬA LỖI] Khôi phục và tối ưu hóa logic cho tooltip cố định
+        function initializeStaticTooltips() {
+            const highlights = contentBody.querySelectorAll('.highlight');
+            highlights.forEach(highlight => {
+                const tooltip = highlight.querySelector('.tooltip');
+                if (tooltip) {
+                    highlight.addEventListener('mouseenter', () => {
+                        document.body.appendChild(tooltip);
+                        const rect = highlight.getBoundingClientRect();
+                        tooltip.style.left = `${rect.left + window.scrollX}px`;
+                        tooltip.style.top = `${rect.top + window.scrollY - 10}px`;
+                        tooltip.style.transform = 'translate(0, -100%)';
+                        tooltip.classList.add('tooltip-visible');
+                    });
+                    highlight.addEventListener('mouseleave', () => {
+                        tooltip.classList.remove('tooltip-visible');
+                    });
+                }
+            });
+        }
+
         function createLessonButtons() {
             for (let i = 1; i <= 30; i++) {
                 const btn = document.createElement('button');
@@ -2526,7 +2554,7 @@ Hãy giải thích ngữ pháp cho câu sau đây bằng **tiếng Việt**.
         async function getPhraseTooltip(phrase) {
             hideDynamicTooltip();
             dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span>';
-            showDynamicTooltip();
+            showDynamicTooltip(window.lastMouseUpEvent);
 
             const prompt = `Phân tích cụm từ tiếng Anh sau cho người học trình độ A1: "${phrase}".
 Cung cấp thông tin theo định dạng sau, mỗi mục trên một dòng mới:
@@ -2549,6 +2577,8 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                         <span class="tooltip-ex">${parsed.EX || 'N/A'}</span>
                     `;
                     dynamicTooltip.innerHTML = tooltipContent;
+                    // Cập nhật lại vị trí sau khi có nội dung
+                    showDynamicTooltip(window.lastMouseUpEvent);
                 } else {
                     throw new Error("No data for phrase tooltip.");
                 }
@@ -2572,20 +2602,15 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             return data;
         }
 
-        function showDynamicTooltip() {
-            const range = window.getSelection().getRangeAt(0);
-            const rect = range.getBoundingClientRect();
+        function showDynamicTooltip(e) {
+            if (!e) return;
             document.body.appendChild(dynamicTooltip);
-            
-            // [SỬA LỖI] Căn giữa và định vị tooltip động một cách chính xác
-            const left = rect.left + window.scrollX + (rect.width / 2);
-            const top = rect.top + window.scrollY;
-
+            const left = e.pageX;
+            const top = e.pageY;
             dynamicTooltip.style.left = `${left}px`;
             dynamicTooltip.style.top = `${top}px`;
             dynamicTooltip.style.bottom = 'auto';
-            dynamicTooltip.style.transform = 'translate(-50%, -110%)'; // Căn giữa ngang, đẩy lên trên
-            
+            dynamicTooltip.style.transform = 'translate(-50%, -110%)';
             dynamicTooltip.classList.add('tooltip-visible');
         }
 
@@ -2594,14 +2619,13 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         }
 
         // --- Logic cho Menu Ngữ cảnh --- //
-        function showSelectionMenu(rect) {
-            // [SỬA LỖI] Tính toán vị trí chính xác cho menu
-            const left = rect.left + window.scrollX + (rect.width / 2);
-            const top = rect.top + window.scrollY;
-
+        function showSelectionMenu(e) {
+            if (!e) return;
+            const left = e.pageX;
+            const top = e.pageY;
             selectionMenu.style.left = `${left}px`;
             selectionMenu.style.top = `${top}px`;
-            selectionMenu.style.transform = 'translate(-50%, -110%)'; // Căn giữa ngang, đẩy lên trên
+            selectionMenu.style.transform = 'translate(-50%, -110%)';
             selectionMenu.style.display = 'flex';
         }
 
@@ -2630,25 +2654,31 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         });
 
+        // [SỬA LỖI] Cải thiện listener `mouseup` để định vị chính xác
         document.addEventListener('mouseup', (e) => {
             if (selectionMenu.contains(e.target)) {
                 return;
             }
-            // [SỬA LỖI] Luôn ẩn menu và tooltip cũ trước khi xử lý bôi đen mới
             hideSelectionMenu();
             hideDynamicTooltip();
+            
+            // Lưu lại vị trí chuột cuối cùng
+            window.lastMouseUpEvent = e;
 
-            // Dùng setTimeout để đảm bảo trình duyệt đã xử lý xong việc bôi đen
             setTimeout(() => {
                 const selection = window.getSelection();
+                if (!selection || selection.isCollapsed) return;
+                
                 const selectedText = selection.toString().trim();
                 
                 if (selectedText.length > 2 && selectedText.length < 150) {
                     const contentBodyEl = document.getElementById('content-body');
-                    if (contentBodyEl.contains(selection.anchorNode)) {
+                    const range = selection.getRangeAt(0);
+                    const commonAncestor = range.commonAncestorContainer;
+
+                    if (contentBodyEl.contains(commonAncestor)) {
                         selectedTextForMenu = selectedText;
-                        const rect = selection.getRangeAt(0).getBoundingClientRect();
-                        showSelectionMenu(rect);
+                        showSelectionMenu(e);
                     }
                 }
             }, 10);

@@ -2819,7 +2819,7 @@
                     throw new Error("No explanation received from API.");
                 }
             } catch (error) {
-                thinkingIndicator.innerHTML = "Xin lỗi, tôi không thể nhận được lời giải thích lúc này. Vui lòng thử lại.";
+                thinkingIndicator.innerHTML = "Xin lỗi, đã có lỗi xảy ra khi kết nối với trợ lý AI. Vui lòng thử lại sau.";
                 console.error("Grammar explanation error:", error);
             } finally {
                 gramSendBtn.disabled = false;
@@ -2901,7 +2901,7 @@ EX: [A simple example sentence]`;
                 };
                 showDynamicTooltip(window.lastMouseUpEvent);
             } catch (error) {
-                dynamicTooltip.innerHTML = '<span>Không thể tra cứu.</span>';
+                dynamicTooltip.innerHTML = '<span>Lỗi tra cứu. Vui lòng thử lại.</span>';
                 console.error("Phrase tooltip error:", error);
             }
         }
@@ -2971,6 +2971,10 @@ EX: [A simple example sentence]`;
         }
 
         function addToNotebook(wordData) {
+            if (!currentLessonId) {
+                alert("Vui lòng chọn một bài học trước khi lưu từ.");
+                return;
+            }
             if (!savedWords[currentLessonId]) {
                 savedWords[currentLessonId] = [];
             }
@@ -3013,6 +3017,13 @@ EX: [A simple example sentence]`;
         function renderNotebook() {
             notebookListContainer.innerHTML = '';
             notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Chọn một từ để xem chi tiết hoặc tra từ mới ở dưới.</p>';
+            
+            if (!currentLessonId) {
+                 notebookTitle.textContent = 'Sổ tay';
+                 notebookListContainer.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Vui lòng vào một bài học để xem sổ tay.</p>';
+                 return;
+            }
+
             notebookTitle.textContent = `Sổ tay: Lesson ${currentLessonId}`;
             const lessonWords = savedWords[currentLessonId] || [];
 
@@ -3039,13 +3050,17 @@ EX: [A simple example sentence]`;
         }
         
         async function lookupWordInNotebook(word) {
+            if (!currentLessonId) {
+                alert("Vui lòng vào một bài học để có thể tra và lưu từ.");
+                return;
+            }
             notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Đang tra cứu...</p>';
             notebookSendBtn.disabled = true;
             try {
                 const wordData = await fetchWordData(word);
                 displayWordDetail(wordData, true);
             } catch (error) {
-                notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--accent-danger);">Không thể tra cứu từ này. Vui lòng thử lại.</p>';
+                notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--accent-danger);">Lỗi tra cứu. Vui lòng thử lại.</p>';
                 console.error("Notebook lookup error:", error);
             } finally {
                 notebookSendBtn.disabled = false;
@@ -3202,7 +3217,8 @@ EX: [A simple example sentence]`;
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
             const apiKey = ""; // API key will be automatically provided in the execution environment.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            const modelName = 'gemini-1.5-flash-latest'; // UPDATED model name for better stability
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
             
             try {
                 const response = await fetch(apiUrl, {
@@ -3214,6 +3230,8 @@ EX: [A simple example sentence]`;
                 });
 
                 if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error("API response error:", response.status, errorBody);
                     // Implement exponential backoff for rate limiting errors
                     if (response.status === 429 && retries > 0) {
                         await new Promise(resolve => setTimeout(resolve, delay));
@@ -3222,7 +3240,18 @@ EX: [A simple example sentence]`;
                     throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
                 
-                return await response.json();
+                const data = await response.json();
+                // Check if the response is valid and contains content
+                if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+                    console.error("Invalid API response:", data);
+                    // Check for safety ratings if available
+                    if (data.promptFeedback && data.promptFeedback.blockReason) {
+                         throw new Error(`API request blocked due to: ${data.promptFeedback.blockReason}`);
+                    }
+                    throw new Error("API returned no candidates or content.");
+                }
+                return data;
+
             } catch (error) {
                  // Retry on network errors
                 if (retries > 0) {

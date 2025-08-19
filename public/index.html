@@ -2476,7 +2476,6 @@
 </div>`
                 }
             }
-
         };
 
         // --- DOM Elements --- //
@@ -2968,45 +2967,61 @@
             selectionMenu.style.display = 'none';
         }
 
+        // UPDATED: More robust positioning logic
         function adjustElementPositionInViewport(element, eventOrTarget) {
             const rect = element.getBoundingClientRect();
             let eventX, eventY, targetRect;
 
-            if (eventOrTarget instanceof MouseEvent || eventOrTarget instanceof TouchEvent) {
-                const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
-                eventX = touch.pageX;
-                eventY = touch.pageY;
-                // If it's the selection menu, try to get the selection rect
-                if (element.id === 'selection-menu') {
-                    const selection = window.getSelection();
-                    if (selection && !selection.isCollapsed) {
-                        targetRect = selection.getRangeAt(0).getBoundingClientRect();
-                        // Position based on the selection rect instead of mouse cursor
-                        eventX = targetRect.left + window.scrollX + targetRect.width / 2;
-                        eventY = targetRect.bottom + window.scrollY;
-                    }
+            // Determine the primary point of interaction from the event
+            let touchPoint = eventOrTarget;
+            if (eventOrTarget.changedTouches && eventOrTarget.changedTouches.length > 0) {
+                touchPoint = eventOrTarget.changedTouches[0];
+            } else if (eventOrTarget.touches && eventOrTarget.touches.length > 0) {
+                touchPoint = eventOrTarget.touches[0];
+            }
+
+            // For the selection menu, prioritize positioning based on the actual text selection rectangle
+            if (element.id === 'selection-menu') {
+                const selection = window.getSelection();
+                if (selection && !selection.isCollapsed) {
+                    targetRect = selection.getRangeAt(0).getBoundingClientRect();
+                    eventX = targetRect.left + window.scrollX + targetRect.width / 2;
+                    eventY = targetRect.bottom + window.scrollY; // Position relative to the bottom of the selection
+                } else if (touchPoint && touchPoint.pageX) {
+                     // Fallback to touch/mouse position if selection rect isn't available
+                    eventX = touchPoint.pageX;
+                    eventY = touchPoint.pageY;
                 }
-            } else {
+            } else if (touchPoint && touchPoint.pageX) { // For other elements triggered by an event
+                eventX = touchPoint.pageX;
+                eventY = touchPoint.pageY;
+            } else if (eventOrTarget.getBoundingClientRect) { // Fallback for positioning relative to a DOM element
                 targetRect = eventOrTarget.getBoundingClientRect();
                 eventX = targetRect.left + window.scrollX + targetRect.width / 2;
                 eventY = targetRect.top + window.scrollY;
+            } else {
+                return; // Cannot determine position
             }
 
             let left = eventX - rect.width / 2;
-            // CHANGE: Position menu and tooltips below the target/selection
-            let top = eventY + 10; // Position below by default
+            let top = eventY + 15; // Default position: below the selection/touch point
 
-            // If it's a static tooltip on a highlight, place it above
+            // Special case for static tooltips on highlighted words, place them above
             if (element.classList.contains('tooltip') && eventOrTarget.classList && eventOrTarget.classList.contains('highlight')) {
-                top = eventY - rect.height - 15;
+                const highlightRect = eventOrTarget.getBoundingClientRect();
+                top = highlightRect.top + window.scrollY - rect.height - 10;
+                left = highlightRect.left + window.scrollX + (highlightRect.width / 2) - (rect.width / 2);
             }
 
+            // Boundary checks to prevent the menu from going off-screen
             if (top + rect.height > window.innerHeight + window.scrollY) {
-                // If it goes off the bottom, position it above
-                top = eventY - (targetRect ? 0 : rect.height) - 15;
+                top = eventY - rect.height - 15 - (targetRect ? targetRect.height : 0);
             }
-            if (left < 0) left = 5;
-            if (left + rect.width > window.innerWidth) {
+            if (top < window.scrollY) {
+                 top = eventY + 15;
+            }
+            if (left < 5) left = 5;
+            if (left + rect.width > window.innerWidth - 5) {
                 left = window.innerWidth - rect.width - 5;
             }
 
@@ -3037,10 +3052,8 @@
             if (!isAlreadySaved) {
                 lessonWords.push(wordData);
                 saveNotebook();
-                // CHANGE: Replace alert with toast notification
                 showToast(`'${wordData.word}' đã được lưu vào sổ tay!`);
             } else {
-                // CHANGE: Replace alert with toast notification
                 showToast(`'${wordData.word}' đã có trong sổ tay.`);
             }
         }
@@ -3177,11 +3190,43 @@
 
 
         // --- Event Listeners --- //
+        
+        // UPDATED: New selection handler
+        const handleSelection = (e) => {
+            if (selectionMenu.contains(e.target) || e.target.closest('.highlight') || notebookContainer.contains(e.target) || dynamicTooltip.contains(e.target)) {
+                return;
+            }
+            
+            // On touch devices, a tap might be to deselect. Hide the menu first.
+            // The timeout will show it again if a selection is actually present.
+            hideSelectionMenu();
+            hideDynamicTooltip();
+            
+            window.lastMouseUpEvent = e;
+
+            setTimeout(() => {
+                const selection = window.getSelection();
+                if (!selection || selection.isCollapsed) return;
+                
+                const selectedText = selection.toString().trim();
+                
+                if (selectedText.length > 2 && selectedText.length < 150) {
+                    const contentBodyEl = document.getElementById('content-body');
+                    const range = selection.getRangeAt(0);
+                    const commonAncestor = range.commonAncestorContainer;
+
+                    if (contentBodyEl.contains(commonAncestor)) {
+                        selectedTextForMenu = selectedText;
+                        showSelectionMenu(e);
+                    }
+                }
+            }, 100); // Increased timeout for mobile reliability
+        };
+
         document.getElementById('back-to-home-btn').onclick = showHomeView;
         document.getElementById('back-to-home-from-content-btn').onclick = showHomeView;
         document.getElementById('back-to-lesson-btn').onclick = () => { if (currentLessonId) showLessonView(currentLessonId); };
         
-        // New Listeners
         notebookFab.addEventListener('click', () => toggleNotebook());
         notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
         notebookSendBtn.addEventListener('click', () => {
@@ -3218,39 +3263,10 @@
             }
         });
 
-        const handleSelection = (e) => {
-            if (selectionMenu.contains(e.target) || e.target.closest('.highlight') || notebookContainer.contains(e.target) || dynamicTooltip.contains(e.target)) {
-                return;
-            }
-            hideSelectionMenu();
-            hideDynamicTooltip();
-            
-            window.lastMouseUpEvent = e;
-
-            setTimeout(() => {
-                const selection = window.getSelection();
-                if (!selection || selection.isCollapsed) return;
-                
-                const selectedText = selection.toString().trim();
-                
-                if (selectedText.length > 2 && selectedText.length < 150) {
-                    const contentBodyEl = document.getElementById('content-body');
-                    const range = selection.getRangeAt(0);
-                    const commonAncestor = range.commonAncestorContainer;
-
-                    if (contentBodyEl.contains(commonAncestor)) {
-                        selectedTextForMenu = selectedText;
-                        showSelectionMenu(e);
-                    }
-                }
-            }, 10);
-        };
-
         document.addEventListener('mouseup', handleSelection);
         document.addEventListener('touchend', handleSelection);
 
         explainGrammarBtn.addEventListener('click', () => {
-            // CHANGE: Pass true to indicate the query is from a selection
             submitGrammarQuery(selectedTextForMenu, true);
             hideSelectionMenu();
         });
@@ -3271,7 +3287,6 @@
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            // FIX: Reverted to use the proxy URL as it was in the original code
             const proxyApiUrl = '/api/proxy'; 
             try {
                 const response = await fetch(proxyApiUrl, { 

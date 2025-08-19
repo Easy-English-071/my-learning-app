@@ -456,6 +456,31 @@
             border-color: var(--accent-warning);
         }
 
+        /* --- Toast Notification --- */
+        #toast-notification {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(15, 23, 42, 0.85);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-sm);
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s, bottom 0.3s ease-out;
+            box-shadow: 0 6px 20px var(--shadow-color);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            font-weight: 500;
+        }
+        #toast-notification.show {
+            visibility: visible;
+            opacity: 1;
+            bottom: 3rem;
+        }
+
         /* --- Responsive --- */
         @media (max-width: 900px) {
             #content-display-area { flex-direction: column; }
@@ -627,6 +652,7 @@
         <button id="translate-phrase-btn" class="selection-menu-btn">🔍 Tra cứu</button>
     </div>
     <div id="dynamic-tooltip" class="tooltip"></div>
+    <div id="toast-notification"></div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -2507,6 +2533,11 @@
         const notebookSendBtn = document.getElementById('notebook-send-btn');
         const notebookTitle = document.getElementById('notebook-title');
 
+        // Toast element
+        const toastNotification = document.getElementById('toast-notification');
+        let toastTimeout;
+
+
         // --- State Management --- //
         let currentLessonId = null;
         let currentContentKey = null;
@@ -2921,24 +2952,34 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         function adjustElementPositionInViewport(element, eventOrTarget) {
             const rect = element.getBoundingClientRect();
-            let eventX, eventY;
+            let eventX, eventY, targetHeight = 0;
 
             if (eventOrTarget instanceof MouseEvent || eventOrTarget instanceof TouchEvent) {
-                 const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
-                 eventX = touch.pageX;
-                 eventY = touch.pageY;
+                const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
+                eventX = touch.pageX;
+                eventY = touch.pageY;
+                // For mouseup event, try to get height from selection range
+                const selection = window.getSelection();
+                if (selection && selection.rangeCount > 0) {
+                    const rangeRect = selection.getRangeAt(0).getBoundingClientRect();
+                    targetHeight = rangeRect.height;
+                }
             } else {
                 const targetRect = eventOrTarget.getBoundingClientRect();
                 eventX = targetRect.left + window.scrollX + targetRect.width / 2;
                 eventY = targetRect.top + window.scrollY;
+                targetHeight = targetRect.height;
             }
 
             let left = eventX - rect.width / 2;
-            let top = eventY - rect.height - 15;
+            // Default to below the selection
+            let top = eventY + targetHeight + 5; 
 
-            if (top - window.scrollY < 0) {
-                top = eventY + 15;
+            // If it goes off the bottom of the viewport, place it above instead
+            if (top + rect.height > window.innerHeight + window.scrollY) {
+                top = eventY - rect.height - 15;
             }
+
             if (left < 0) left = 5;
             if (left + rect.width > window.innerWidth) {
                 left = window.innerWidth - rect.width - 5;
@@ -2948,6 +2989,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             element.style.top = `${top}px`;
             element.style.transform = 'none';
         }
+
 
         // --- Notebook Logic --- //
         function loadNotebook() {
@@ -2971,9 +3013,9 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             if (!isAlreadySaved) {
                 lessonWords.push(wordData);
                 saveNotebook();
-                alert(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
+                showToast(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
             } else {
-                alert(`'${wordData.word}' đã có trong sổ tay.`);
+                showToast(`'${wordData.word}' đã có trong sổ tay.`);
             }
         }
 
@@ -3107,6 +3149,17 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         }
 
+        // --- Toast Notification Logic --- //
+        function showToast(message) {
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
+        }
 
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
@@ -3202,28 +3255,40 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            const proxyApiUrl = '/api/proxy'; 
+            // NOTE: This function would typically call a backend proxy which then calls the Gemini API.
+            // For this example, we'll simulate the call. In a real environment, you'd replace this
+            // with a fetch call to your server endpoint.
+            const apiKey = ""; // This would be securely handled on a server.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
             try {
-                const response = await fetch(proxyApiUrl, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload) 
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
+
                 if (!response.ok) {
+                    // Handle non-2xx responses, including retrying on 429
                     if (response.status === 429 && retries > 0) {
+                        console.warn(`Rate limited. Retrying in ${delay}ms...`);
                         await new Promise(r => setTimeout(r, delay));
                         return callGeminiAPI(payload, retries - 1, delay * 2);
                     }
-                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                    const errorBody = await response.text();
+                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
                 }
                 return await response.json();
             } catch (error) {
+                console.error("API call error:", error);
+                // Retry on network errors
                 if (retries > 0) {
+                    console.warn(`Network error. Retrying in ${delay}ms...`);
                     await new Promise(r => setTimeout(r, delay));
                     return callGeminiAPI(payload, retries - 1, delay * 2);
                 }
                 console.error("API call failed after retries:", error);
-                throw error;
+                throw error; // Re-throw the error after all retries have failed
             }
         }
 

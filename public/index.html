@@ -122,16 +122,16 @@
         .navigation-buttons { margin-top: auto; padding-top: 1.5rem; display: flex; justify-content: center; gap: 1rem; }
         #content-display-area { display: flex; gap: 1.5rem; }
         #content-body-wrapper { flex: 3; min-width: 0; }
-        #content-body {
+        #content-body, #flashcard-container, #badges-container {
             background-color: rgba(255, 255, 255, 0.4); padding: 1.5rem;
             border-radius: var(--radius-md); border: 1px solid var(--glass-border);
             box-shadow: inset 0 2px 4px var(--shadow-color); height: 450px;
             overflow-y: auto; color: var(--text-primary); line-height: 1.7;
             overflow-x: hidden;
         }
-        #content-body::-webkit-scrollbar { width: 8px; }
-        #content-body::-webkit-scrollbar-track { background: transparent; }
-        #content-body::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 4px; }
+        #content-body::-webkit-scrollbar, #flashcard-container::-webkit-scrollbar, #badges-container::-webkit-scrollbar { width: 8px; }
+        #content-body::-webkit-scrollbar-track, #flashcard-container::-webkit-scrollbar-track, #badges-container::-webkit-scrollbar-track { background: transparent; }
+        #content-body::-webkit-scrollbar-thumb, #flashcard-container::-webkit-scrollbar-thumb, #badges-container::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 4px; }
         .conversation-title {
             font-size: 1.1em; font-weight: 700; color: var(--accent-warning);
             margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 1px solid var(--accent-danger);
@@ -181,10 +181,10 @@
         .tooltip span { display: block; margin-bottom: 6px; }
         .tooltip-word { color: #007AFF; font-weight: 600; font-size: 18px; }
         .tooltip-ipa { color: #8E8E93; font-style: italic; }
-        .tooltip-pos { color: #FF9500; font-weight: 500; }
+        .tooltip-pos { color: #D97706; font-weight: 500; }
         .tooltip-en { color: #5856D6; }
-        .tooltip-vi { color: #FF2D55; }
-        .tooltip-ex { color: #5AC8FA; background-color: #eef9ff; padding: 8px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(90, 200, 250, 0.3); }
+        .tooltip-vi { color: #BE123C; }
+        .tooltip-ex { color: #0E7490; background-color: #f0f9ff; padding: 8px; border-radius: 8px; margin-top: 8px; border: 1px solid rgba(14, 116, 144, 0.2); }
         #media-player-container {
             flex: 1; background-color: rgba(255, 255, 255, 0.2);
             padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border);
@@ -456,6 +456,167 @@
             border-color: var(--accent-warning);
         }
 
+        /* --- Toast Notification --- */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+        .toast {
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.5rem;
+            box-shadow: 0 6px 20px var(--shadow-color);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0;
+            transform: translateX(100%);
+            animation: slideIn 0.5s forwards, fadeOut 0.5s 3s forwards;
+        }
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+        }
+        .toast.success .toast-icon { color: var(--accent-success); }
+        .toast.error .toast-icon { color: var(--accent-danger); }
+        .toast.info .toast-icon { color: var(--accent-primary); }
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        /* --- Flashcard Practice --- */
+        #flashcard-practice-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1500;
+            display: none; /* Hidden by default */
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        #flashcard-practice-view.active {
+            display: flex;
+        }
+        .flashcard-scene {
+            width: 100%;
+            max-width: 400px; /* Smaller card */
+            height: 250px; /* Smaller card */
+            perspective: 1000px;
+        }
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: var(--radius-lg);
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 var(--shadow-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            flex-direction: column;
+        }
+        .flashcard-face-front {
+            font-size: 2.8rem; /* Bigger font */
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+        .flashcard-face-back {
+            transform: rotateY(180deg);
+            font-size: 1.1rem; /* Bigger font */
+            line-height: 1.6;
+            gap: 0.5rem;
+        }
+        .flashcard-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+        #flashcard-counter {
+            color: white;
+            font-size: 1.2rem;
+            min-width: 60px;
+            text-align: center;
+        }
+        #flashcard-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        #flashcard-remembered-btn {
+            background-color: var(--accent-success);
+        }
+        #flashcard-remembered-btn:hover:not(:disabled) {
+            background-color: #16a34a; /* darker green */
+        }
+        #practice-progress-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+            width: 100%;
+            max-width: 400px; /* Match card width */
+        }
+        #practice-progress-bar-outer {
+            flex-grow: 1;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        #practice-progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background-color: var(--accent-success);
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+
         /* --- Responsive --- */
         @media (max-width: 900px) {
             #content-display-area { flex-direction: column; }
@@ -498,6 +659,9 @@
                 padding-right: 0.75rem;
                 margin-right: 0.75rem;
             }
+            .flashcard-face-front { font-size: 2.2rem; }
+            .flashcard-scene { height: 220px; }
+            #toast-container { right: 1rem; top: 1rem; }
         }
     </style>
 </head>
@@ -506,6 +670,8 @@
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
     </div>
+
+    <div id="toast-container"></div>
 
     <div class="main-container">
         <header>
@@ -583,7 +749,12 @@
     <div id="notebook-container" class="popup-container">
         <div class="popup-header">
             <h3 id="notebook-title">Sổ tay</h3>
-            <button id="notebook-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
+            <div class="popup-header-buttons">
+                 <button id="practice-btn" class="popup-header-btn" title="Luyện tập">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                </button>
+                <button id="notebook-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
+            </div>
         </div>
         <div id="notebook-content">
             <div id="notebook-list-container"></div>
@@ -620,6 +791,36 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
+    </div>
+    
+    <!-- Flashcard Practice View -->
+    <div id="flashcard-practice-view">
+        <div id="practice-progress-container">
+            <div id="practice-progress-bar-outer">
+                <div id="practice-progress-bar-inner"></div>
+            </div>
+            <span id="practice-progress-text">0/10</span>
+        </div>
+        <div class="flashcard-scene">
+            <div id="flashcard" class="flashcard">
+                <div class="flashcard-face flashcard-face-front"></div>
+                <div class="flashcard-face flashcard-face-back"></div>
+            </div>
+        </div>
+        <div class="flashcard-nav">
+            <button id="flashcard-prev-btn" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>
+            <div id="flashcard-counter">1 / 10</div>
+            <button id="flashcard-next-btn" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+        </div>
+        <div id="flashcard-actions">
+            <button id="flashcard-review-btn" class="btn btn-secondary">Ôn lại</button>
+            <button id="flashcard-remembered-btn" class="btn btn-primary">Đã nhớ</button>
+        </div>
+        <button id="flashcard-exit-btn" class="btn btn-primary" style="margin-top: 1rem; background-color: var(--accent-danger);">Thoát</button>
     </div>
 
     <div id="selection-menu">
@@ -2506,14 +2707,36 @@
         const notebookInput = document.getElementById('notebook-input');
         const notebookSendBtn = document.getElementById('notebook-send-btn');
         const notebookTitle = document.getElementById('notebook-title');
+        const practiceBtn = document.getElementById('practice-btn');
+
+        // Flashcard elements
+        const flashcardPracticeView = document.getElementById('flashcard-practice-view');
+        const flashcardEl = document.getElementById('flashcard');
+        const flashcardFront = document.querySelector('.flashcard-face-front');
+        const flashcardBack = document.querySelector('.flashcard-face-back');
+        const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+        const flashcardNextBtn = document.getElementById('flashcard-next-btn');
+        const flashcardCounter = document.getElementById('flashcard-counter');
+        const flashcardExitBtn = document.getElementById('flashcard-exit-btn');
+        const flashcardReviewBtn = document.getElementById('flashcard-review-btn');
+        const flashcardRememberedBtn = document.getElementById('flashcard-remembered-btn');
+        const practiceProgressBar = document.getElementById('practice-progress-bar-inner');
+        const practiceProgressText = document.getElementById('practice-progress-text');
+
 
         // --- State Management --- //
         let currentLessonId = null;
         let currentContentKey = null;
         let selectedTextForMenu = '';
         let gramChatHistoryArray = [];
+        let isGramChatPristine = true; // Flag for initial Gram state
         let mediaState = {}; 
         let savedWords = {};
+
+        // Flashcard State
+        let practiceWords = [];
+        let currentCardIndex = 0;
+        let currentPracticeList = [];
 
         // Waveform state
         let audioContext;
@@ -2826,6 +3049,11 @@
         }
         async function submitGrammarQuery(query) {
             if (query && !gramSendBtn.disabled) {
+                if (isGramChatPristine) {
+                    gramChatHistory.innerHTML = '';
+                    gramChatHistoryArray = [];
+                    isGramChatPristine = false;
+                }
                 toggleGramAssistant(true);
                 addMessageToChat(query, 'user');
                 gramInput.value = '';
@@ -2922,10 +3150,12 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         function adjustElementPositionInViewport(element, targetRect) {
             const menuRect = element.getBoundingClientRect();
             let left = targetRect.left + (targetRect.width / 2) - (menuRect.width / 2) + window.scrollX;
-            let top = targetRect.top - menuRect.height - 10 + window.scrollY; // 10px offset
+            // Default position is below
+            let top = targetRect.bottom + 10 + window.scrollY;
 
-            if (top < window.scrollY) { 
-                top = targetRect.bottom + 10 + window.scrollY;
+            // If it goes off the bottom, flip it to the top
+            if (top + menuRect.height > window.innerHeight + window.scrollY) { 
+                top = targetRect.top - menuRect.height - 10 + window.scrollY;
             }
             if (left < 0) left = 5;
             if (left + menuRect.width > window.innerWidth) {
@@ -2958,9 +3188,9 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             if (!isAlreadySaved) {
                 lessonWords.push(wordData);
                 saveNotebook();
-                alert(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
+                showToast(`'${wordData.word}' đã được lưu!`, 'success');
             } else {
-                alert(`'${wordData.word}' đã có trong sổ tay.`);
+                showToast(`'${wordData.word}' đã có trong sổ tay.`, 'info');
             }
         }
 
@@ -2988,7 +3218,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
                     const detailContent = `
                         <span class="tooltip-word">${word.word}</span>
-                        <span class="tooltip-ipa">${word.ipa}</span>
+                        <span class="tooltip-ipa">${word.ipa || ''}</span>
                         <span class="tooltip-pos">${word.pos}</span>
                         <span class="tooltip-en">${word.en}</span>
                         <span class="tooltip-vi">${word.vi}</span>
@@ -3094,15 +3324,145 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         }
 
+        // --- Toast Notification Logic --- //
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const iconSvg = {
+                success: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="toast-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>`,
+                error: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="toast-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>`,
+                info: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="toast-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`
+            };
+
+            toast.innerHTML = `${iconSvg[type] || iconSvg['info']} <p>${message}</p>`;
+            toastContainer.appendChild(toast);
+
+            toast.addEventListener('animationend', (e) => {
+                if (e.animationName === 'fadeOut') {
+                    toast.remove();
+                }
+            });
+        }
+
+        // --- Flashcard Logic --- //
+        function startPractice() {
+            practiceWords = savedWords[currentLessonId] || [];
+            if (practiceWords.length < 1) {
+                showToast('Bạn cần ít nhất 1 từ trong sổ tay để luyện tập.', 'info');
+                return;
+            }
+            
+            // Start with all words that are not marked as 'remembered'
+            currentPracticeList = practiceWords
+                .map((word, index) => ({ ...word, originalIndex: index })) // Keep track of original index
+                .filter(word => word.status !== 'remembered');
+
+            // If all words are remembered, ask to restart
+            if (currentPracticeList.length === 0) {
+                 showToast('Tất cả các từ đã được ghi nhớ! Bắt đầu lại từ đầu.', 'info');
+                 practiceWords.forEach(w => w.status = 'unseen'); // Reset all
+                 currentPracticeList = practiceWords.map((word, index) => ({ ...word, originalIndex: index }));
+            }
+            
+            currentPracticeList = currentPracticeList.sort(() => Math.random() - 0.5); // Shuffle
+            currentCardIndex = 0;
+            
+            flashcardPracticeView.classList.add('active');
+            toggleNotebook(false);
+            updatePracticeProgress();
+            displayCard(currentCardIndex);
+        }
+
+        function endPractice() {
+            flashcardPracticeView.classList.remove('active');
+            saveNotebook(); // Save progress
+        }
+
+        function displayCard(index) {
+            if (index < 0 || index >= currentPracticeList.length) {
+                // Handle session end
+                const wordsToReview = practiceWords.filter(w => w.status === 'review');
+                if (wordsToReview.length > 0) {
+                    showToast(`Hoàn thành! Bắt đầu vòng ôn tập với ${wordsToReview.length} từ.`, 'info');
+                    currentPracticeList = wordsToReview
+                        .map((word, index) => ({ ...word, originalIndex: practiceWords.findIndex(w => w.word === word.word) }))
+                        .sort(() => Math.random() - 0.5);
+                    currentCardIndex = 0;
+                    displayCard(currentCardIndex);
+                } else {
+                    showToast('Tuyệt vời! Bạn đã nhớ tất cả các từ.', 'success');
+                    endPractice();
+                }
+                return;
+            };
+            
+            const wordData = currentPracticeList[index];
+            flashcardFront.textContent = wordData.word;
+            
+            flashcardBack.innerHTML = `
+                <span class="tooltip-ipa">${wordData.ipa || ''}</span>
+                <span class="tooltip-pos">${wordData.pos}</span>
+                <span class="tooltip-vi">${wordData.vi}</span>
+                <span class="tooltip-ex" style="font-size: 0.9rem;">${wordData.ex}</span>
+            `;
+            
+            flashcardCounter.textContent = `${index + 1} / ${currentPracticeList.length}`;
+            flashcardEl.classList.remove('is-flipped');
+        }
+
+        function updatePracticeProgress() {
+            const totalWords = practiceWords.length;
+            const rememberedCount = practiceWords.filter(w => w.status === 'remembered').length;
+            const progressPercent = totalWords > 0 ? (rememberedCount / totalWords) * 100 : 0;
+            
+            practiceProgressBar.style.width = `${progressPercent}%`;
+            practiceProgressText.textContent = `${rememberedCount}/${totalWords}`;
+        }
+
+        function handleCardAction(status) {
+            if (currentCardIndex >= currentPracticeList.length) return;
+
+            const currentWord = currentPracticeList[currentCardIndex];
+            // Update the status in the main `practiceWords` array using originalIndex
+            practiceWords[currentWord.originalIndex].status = status;
+            
+            updatePracticeProgress();
+            
+            // Move to the next card
+            setTimeout(() => {
+                currentCardIndex++;
+                displayCard(currentCardIndex);
+            }, 200); // Short delay for user to see feedback
+        }
+
+        function flipCard() {
+            flashcardEl.classList.toggle('is-flipped');
+        }
+
+        function showNextCard() {
+            currentCardIndex = (currentCardIndex + 1);
+            if(currentCardIndex >= currentPracticeList.length) currentCardIndex = 0; // Loop back
+            displayCard(currentCardIndex);
+        }
+
+        function showPrevCard() {
+            currentCardIndex = (currentCardIndex - 1);
+            if(currentCardIndex < 0) currentCardIndex = currentPracticeList.length - 1; // Loop back
+            displayCard(currentCardIndex);
+        }
+
 
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
         document.getElementById('back-to-home-from-content-btn').onclick = showHomeView;
         document.getElementById('back-to-lesson-btn').onclick = () => { if (currentLessonId) showLessonView(currentLessonId); };
         
-        // New Listeners
+        // Notebook Listeners
         notebookFab.addEventListener('click', () => toggleNotebook());
         notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
+        practiceBtn.addEventListener('click', startPractice);
         notebookSendBtn.addEventListener('click', () => {
             const word = notebookInput.value.trim();
             if (word) lookupWordInNotebook(word);
@@ -3115,6 +3475,16 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         });
 
+        // Flashcard Listeners
+        flashcardEl.addEventListener('click', flipCard);
+        flashcardNextBtn.addEventListener('click', showNextCard);
+        flashcardPrevBtn.addEventListener('click', showPrevCard);
+        flashcardExitBtn.addEventListener('click', endPractice);
+        flashcardReviewBtn.addEventListener('click', () => handleCardAction('review'));
+        flashcardRememberedBtn.addEventListener('click', () => handleCardAction('remembered'));
+
+
+        // Gram Assistant Listeners
         gramFab.addEventListener('click', () => toggleGramAssistant());
         gramCloseBtn.addEventListener('click', () => toggleGramAssistant(false));
         
@@ -3122,6 +3492,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             gramChatHistoryArray = [];
             gramChatHistory.innerHTML = '';
             addMessageToChat('Chào bạn! Tôi là Gram. Hãy bôi đen một câu trong bài hoặc gõ vào đây để tôi giải thích ngữ pháp nhé.', 'ai');
+            isGramChatPristine = false; // Chat is now active
         });
 
         gramSendBtn.addEventListener('click', () => {
@@ -3164,7 +3535,10 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }, 10);
         };
 
-        document.addEventListener('mouseup', handleSelection);
+        document.addEventListener('mouseup', (e) => {
+            window.lastMouseUpEvent = e;
+            handleSelection(e);
+        });
         document.addEventListener('touchend', handleSelection);
 
         explainGrammarBtn.addEventListener('click', () => {
@@ -3188,9 +3562,11 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            const proxyApiUrl = '/api/proxy'; 
+            const apiKey = ""; // API key is handled by the environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+            
             try {
-                const response = await fetch(proxyApiUrl, { 
+                const response = await fetch(apiUrl, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify(payload) 

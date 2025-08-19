@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -456,29 +456,27 @@
             border-color: var(--accent-warning);
         }
 
-        /* --- Toast Notification --- */
-        #toast-notification {
+        /* --- NEW: Toast Notification --- */
+        .toast-notification {
             position: fixed;
             bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(15, 23, 42, 0.85);
-            color: white;
+            right: 2rem;
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            color: var(--text-primary);
             padding: 1rem 1.5rem;
-            border-radius: var(--radius-sm);
-            z-index: 2000;
-            visibility: hidden;
-            opacity: 0;
-            transition: opacity 0.3s, visibility 0.3s, bottom 0.3s ease-out;
+            border-radius: var(--radius-md);
             box-shadow: 0 6px 20px var(--shadow-color);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
-            font-weight: 500;
+            border: 1px solid var(--glass-border);
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
         }
-        #toast-notification.show {
-            visibility: visible;
+        .toast-notification.show {
             opacity: 1;
-            bottom: 3rem;
+            transform: translateY(0);
         }
 
         /* --- Responsive --- */
@@ -652,7 +650,8 @@
         <button id="translate-phrase-btn" class="selection-menu-btn">🔍 Tra cứu</button>
     </div>
     <div id="dynamic-tooltip" class="tooltip"></div>
-    <div id="toast-notification"></div>
+    <!-- NEW: Toast Notification Element -->
+    <div id="toast-notification" class="toast-notification"></div>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -2504,6 +2503,7 @@
         const dynamicTooltip = document.getElementById('dynamic-tooltip');
         const explainGrammarBtn = document.getElementById('explain-grammar-btn');
         const translatePhraseBtn = document.getElementById('translate-phrase-btn');
+        const toastNotification = document.getElementById('toast-notification');
         
         // Media Player elements
         const mediaUploadInput = document.getElementById('media-upload-input');
@@ -2533,11 +2533,6 @@
         const notebookSendBtn = document.getElementById('notebook-send-btn');
         const notebookTitle = document.getElementById('notebook-title');
 
-        // Toast element
-        const toastNotification = document.getElementById('toast-notification');
-        let toastTimeout;
-
-
         // --- State Management --- //
         let currentLessonId = null;
         let currentContentKey = null;
@@ -2553,6 +2548,18 @@
         let waveformDataArray;
         let waveformAnimationId;
 
+        // --- NEW: Toast Notification Logic --- //
+        let toastTimeout;
+        function showToast(message, duration = 3000) {
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, duration);
+        }
 
         // --- View Management --- //
         function showView(viewId) {
@@ -2777,12 +2784,12 @@
             }
         }
         function addMessageToChat(message, sender) {
-              const messageDiv = document.createElement('div');
-              messageDiv.className = `gram-message ${sender}`;
-              messageDiv.innerHTML = message;
-              gramChatHistory.appendChild(messageDiv);
-              gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
-              return messageDiv;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `gram-message ${sender}`;
+            messageDiv.innerHTML = message;
+            gramChatHistory.appendChild(messageDiv);
+            gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
+            return messageDiv;
         }
         function showThinkingIndicator() {
             const thinkingDiv = addMessageToChat(`<span></span><span></span><span></span>`, 'ai thinking');
@@ -2818,23 +2825,31 @@
             }
             typeWriter();
         }
-        async function getGrammarExplanation() {
+        async function getGrammarExplanation(query, fromSelection = false) {
             const thinkingIndicator = showThinkingIndicator();
             gramSendBtn.disabled = true;
             gramInput.disabled = true;
 
-            const systemInstruction = {
-                role: "user",
-                parts: [{ text: `SYSTEM: You are Gram, a friendly and insightful grammar tutor for A1 English learners. Your goal is to make grammar easy and clear.
-- Explain concepts in simple Vietnamese.
-- Use simple analogies and comparisons.
-- Always provide at least one clear example sentence.
-- When a user asks a follow-up question, use the previous conversation for context.
-- Format key grammar terms in markdown bold, like **thì hiện tại đơn**.
-- Do not greet the user unless it's the very first message of the conversation.`}]
-            };
-
-            const payload = { contents: [systemInstruction, ...gramChatHistoryArray] };
+            let payload;
+            // CHANGE: Create a specific, direct prompt if the query is from a selection
+            if (fromSelection) {
+                const directPrompt = `SYSTEM: You are Gram, a friendly and insightful grammar tutor for A1 English learners. Your goal is to make grammar easy and clear. Explain the following sentence's grammar in simple Vietnamese. Use simple analogies and comparisons. Always provide at least one clear example sentence. Format key grammar terms in markdown bold, like **thì hiện tại đơn**. Do not greet the user.
+                
+                SENTENCE TO EXPLAIN: "${query}"`;
+                payload = { contents: [{ role: "user", parts: [{ text: directPrompt }] }] };
+            } else {
+                const systemInstruction = { 
+                    role: "user", 
+                    parts: [{ text: `SYSTEM: You are Gram, a friendly and insightful grammar tutor for A1 English learners. Your goal is to make grammar easy and clear.  
+    - Explain concepts in simple Vietnamese.  
+    - Use simple analogies and comparisons.  
+    - Always provide at least one clear example sentence.  
+    - When a user asks a follow-up question, use the previous conversation for context.  
+    - Format key grammar terms in markdown bold, like **thì hiện tại đơn**.  
+    - Do not greet the user unless it's the very first message of the conversation.`}] 
+                };  
+                payload = { contents: [systemInstruction, ...gramChatHistoryArray] };  
+            }
             
             try {
                 const result = await callGeminiAPI(payload);
@@ -2855,13 +2870,15 @@
                 gramInput.focus();
             }
         }
-        async function submitGrammarQuery(query) {
+        async function submitGrammarQuery(query, fromSelection = false) {
             if (query && !gramSendBtn.disabled) {
                 toggleGramAssistant(true);
-                addMessageToChat(query, 'user');
-                gramInput.value = '';
-                gramChatHistoryArray.push({ role: "user", parts: [{ text: query }] });
-                await getGrammarExplanation();
+                if (!fromSelection) {
+                    addMessageToChat(query, 'user');
+                    gramInput.value = '';
+                    gramChatHistoryArray.push({ role: "user", parts: [{ text: query }] });
+                }
+                await getGrammarExplanation(query, fromSelection);
             }
         }
 
@@ -2871,12 +2888,12 @@
             dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span><button id="save-word-btn" class="selection-menu-btn" style="display:none;">📖 Lưu vào sổ tay</button>';
             showDynamicTooltip(window.lastMouseUpEvent);
 
-            const prompt = `Phân tích cụm từ tiếng Anh sau cho người học trình độ A1: "${phrase}".
-Cung cấp thông tin theo định dạng sau, mỗi mục trên một dòng mới:
-TYPE: [Loại cụm từ, ví dụ: verb phrase, prepositional phrase, idiom]
-EN: [Giải thích nghĩa bằng tiếng Anh đơn giản]
-VI: [Dịch sang tiếng Việt]
-EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
+            const prompt = `Phân tích cụm từ tiếng Anh sau cho người học trình độ A1: "${phrase}".  
+  Cung cấp thông tin theo định dạng sau, mỗi mục trên một dòng mới:  
+  TYPE: [Loại cụm từ, ví dụ: verb phrase, prepositional phrase, idiom]  
+  EN: [Giải thích nghĩa bằng tiếng Anh đơn giản]  
+  VI: [Dịch sang tiếng Việt]  
+  EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             try {
@@ -2952,34 +2969,41 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         function adjustElementPositionInViewport(element, eventOrTarget) {
             const rect = element.getBoundingClientRect();
-            let eventX, eventY, targetHeight = 0;
+            let eventX, eventY, targetRect;
 
             if (eventOrTarget instanceof MouseEvent || eventOrTarget instanceof TouchEvent) {
                 const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
                 eventX = touch.pageX;
                 eventY = touch.pageY;
-                // For mouseup event, try to get height from selection range
-                const selection = window.getSelection();
-                if (selection && selection.rangeCount > 0) {
-                    const rangeRect = selection.getRangeAt(0).getBoundingClientRect();
-                    targetHeight = rangeRect.height;
+                // If it's the selection menu, try to get the selection rect
+                if (element.id === 'selection-menu') {
+                    const selection = window.getSelection();
+                    if (selection && !selection.isCollapsed) {
+                        targetRect = selection.getRangeAt(0).getBoundingClientRect();
+                        // Position based on the selection rect instead of mouse cursor
+                        eventX = targetRect.left + window.scrollX + targetRect.width / 2;
+                        eventY = targetRect.bottom + window.scrollY;
+                    }
                 }
             } else {
-                const targetRect = eventOrTarget.getBoundingClientRect();
+                targetRect = eventOrTarget.getBoundingClientRect();
                 eventX = targetRect.left + window.scrollX + targetRect.width / 2;
                 eventY = targetRect.top + window.scrollY;
-                targetHeight = targetRect.height;
             }
 
             let left = eventX - rect.width / 2;
-            // Default to below the selection
-            let top = eventY + targetHeight + 5; 
+            // CHANGE: Position menu and tooltips below the target/selection
+            let top = eventY + 10; // Position below by default
 
-            // If it goes off the bottom of the viewport, place it above instead
-            if (top + rect.height > window.innerHeight + window.scrollY) {
+            // If it's a static tooltip on a highlight, place it above
+            if (element.classList.contains('tooltip') && eventOrTarget.classList && eventOrTarget.classList.contains('highlight')) {
                 top = eventY - rect.height - 15;
             }
 
+            if (top + rect.height > window.innerHeight + window.scrollY) {
+                // If it goes off the bottom, position it above
+                top = eventY - (targetRect ? 0 : rect.height) - 15;
+            }
             if (left < 0) left = 5;
             if (left + rect.width > window.innerWidth) {
                 left = window.innerWidth - rect.width - 5;
@@ -2989,7 +3013,6 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             element.style.top = `${top}px`;
             element.style.transform = 'none';
         }
-
 
         // --- Notebook Logic --- //
         function loadNotebook() {
@@ -3013,8 +3036,10 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             if (!isAlreadySaved) {
                 lessonWords.push(wordData);
                 saveNotebook();
-                showToast(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
+                // CHANGE: Replace alert with toast notification
+                showToast(`'${wordData.word}' đã được lưu vào sổ tay!`);
             } else {
+                // CHANGE: Replace alert with toast notification
                 showToast(`'${wordData.word}' đã có trong sổ tay.`);
             }
         }
@@ -3149,17 +3174,6 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         }
 
-        // --- Toast Notification Logic --- //
-        function showToast(message) {
-            if (toastTimeout) {
-                clearTimeout(toastTimeout);
-            }
-            toastNotification.textContent = message;
-            toastNotification.classList.add('show');
-            toastTimeout = setTimeout(() => {
-                toastNotification.classList.remove('show');
-            }, 3000);
-        }
 
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
@@ -3235,7 +3249,8 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         document.addEventListener('touchend', handleSelection);
 
         explainGrammarBtn.addEventListener('click', () => {
-            submitGrammarQuery(selectedTextForMenu);
+            // CHANGE: Pass true to indicate the query is from a selection
+            submitGrammarQuery(selectedTextForMenu, true);
             hideSelectionMenu();
         });
         translatePhraseBtn.addEventListener('click', () => {
@@ -3255,34 +3270,33 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            const apiKey = ""; // API key is injected by the execution environment.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-            
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+            // This is a placeholder for your actual Gemini API endpoint.
+            // In a real application, you would have a backend proxy to handle this securely.
+            // For this example, we'll simulate the API call.
+            const apiKey = ""; // IMPORTANT: Leave this empty. Canvas will handle it.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
+            try {
+                const response = await fetch(apiUrl, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payload) 
+                });
                 if (!response.ok) {
                     if (response.status === 429 && retries > 0) {
-                        // Exponential backoff for rate limiting
                         await new Promise(r => setTimeout(r, delay));
                         return callGeminiAPI(payload, retries - 1, delay * 2);
                     }
-                    const errorBody = await response.text();
-                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
+                    throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
                 return await response.json();
             } catch (error) {
-                // Retry on network errors
                 if (retries > 0) {
                     await new Promise(r => setTimeout(r, delay));
                     return callGeminiAPI(payload, retries - 1, delay * 2);
                 }
-                console.error("API call failed after all retries:", error);
-                throw error; // Re-throw the error after all retries have failed
+                console.error("API call failed after retries:", error);
+                throw error;
             }
         }
 

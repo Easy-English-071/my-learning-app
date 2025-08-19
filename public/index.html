@@ -2909,44 +2909,31 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         }
 
         // --- Logic cho Menu Ngữ cảnh --- //
-        function showSelectionMenu(e) {
-            if (!e) return;
+        function showSelectionMenu(targetRect) {
+            if (!targetRect) return;
             selectionMenu.style.display = 'flex';
-            adjustElementPositionInViewport(selectionMenu, e);
+            adjustElementPositionInViewport(selectionMenu, targetRect);
         }
 
         function hideSelectionMenu() {
             selectionMenu.style.display = 'none';
         }
 
-        function adjustElementPositionInViewport(element, eventOrTarget) {
-            const rect = element.getBoundingClientRect();
-            let eventX, eventY;
+        function adjustElementPositionInViewport(element, targetRect) {
+            const menuRect = element.getBoundingClientRect();
+            let left = targetRect.left + (targetRect.width / 2) - (menuRect.width / 2) + window.scrollX;
+            let top = targetRect.top - menuRect.height - 10 + window.scrollY; // 10px offset
 
-            if (eventOrTarget instanceof MouseEvent || eventOrTarget instanceof TouchEvent) {
-                 const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
-                 eventX = touch.pageX;
-                 eventY = touch.pageY;
-            } else {
-                const targetRect = eventOrTarget.getBoundingClientRect();
-                eventX = targetRect.left + window.scrollX + targetRect.width / 2;
-                eventY = targetRect.top + window.scrollY;
-            }
-
-            let left = eventX - rect.width / 2;
-            let top = eventY - rect.height - 15;
-
-            if (top - window.scrollY < 0) {
-                top = eventY + 15;
+            if (top < window.scrollY) { 
+                top = targetRect.bottom + 10 + window.scrollY;
             }
             if (left < 0) left = 5;
-            if (left + rect.width > window.innerWidth) {
-                left = window.innerWidth - rect.width - 5;
+            if (left + menuRect.width > window.innerWidth) {
+                left = window.innerWidth - menuRect.width - 5;
             }
 
             element.style.left = `${left}px`;
             element.style.top = `${top}px`;
-            element.style.transform = 'none';
         }
 
         // --- Notebook Logic --- //
@@ -3157,8 +3144,6 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             hideSelectionMenu();
             hideDynamicTooltip();
             
-            window.lastMouseUpEvent = e;
-
             setTimeout(() => {
                 const selection = window.getSelection();
                 if (!selection || selection.isCollapsed) return;
@@ -3172,7 +3157,8 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
                     if (contentBodyEl.contains(commonAncestor)) {
                         selectedTextForMenu = selectedText;
-                        showSelectionMenu(e);
+                        const rect = range.getBoundingClientRect();
+                        showSelectionMenu(rect);
                     }
                 }
             }, 10);

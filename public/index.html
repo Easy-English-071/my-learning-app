@@ -141,7 +141,12 @@
             flex-shrink: 0; padding-right: 1rem; margin-right: 1rem;
             border-right: 1px solid rgba(0,0,0,0.1); text-align: left;
         }
-        .message { flex: 1; text-align: left; word-break: break-word; }
+        .message {
+            flex: 1;
+            text-align: left;
+            word-break: break-word;
+            min-width: 0; /* [SỬA LỖI] Khắc phục lỗi dàn trang trên di động */
+        }
         .highlight {
             background-color: rgba(255, 204, 0, 0.2);
             border-radius: 4px;
@@ -471,12 +476,11 @@
                 bottom: calc(1rem + 15px);
                 right: calc(1rem + 65px);
             }
-            /* [SỬA LỖI] Dàn trang trên điện thoại */
             .dialogue-line {
                 font-size: 0.95rem;
             }
             .speaker {
-                width: auto; /* Để chiều rộng tự động co giãn theo nội dung */
+                width: 70px; /* Hoàn nguyên chiều rộng cột tên */
                 padding-right: 0.75rem;
                 margin-right: 0.75rem;
             }

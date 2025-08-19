@@ -385,7 +385,7 @@
         .input-area button { flex-shrink: 0; padding: 0.75rem; }
         .input-area button svg { width: 20px; height: 20px; }
         #notebook-send-btn { background-color: var(--accent-warning); }
-        #notebook-send-btn:hover { background-color: #d97706; }
+        #notebook-send-btn:hover:not(:disabled) { background-color: #d97706; }
 
         #selection-menu {
             position: absolute; background-color: var(--glass-bg);
@@ -405,7 +405,6 @@
             background-color: var(--btn-secondary-hover-bg);
         }
         
-        /* [CẬP NHẬT] Giao diện Sổ tay */
         #notebook-content {
             display: flex;
             gap: 1.5rem;
@@ -2838,67 +2837,73 @@
             }
         }
 
-        // --- Logic cho Tooltip Cụm từ --- //
+        // --- Word/Phrase Lookup Logic --- //
+        async function fetchWordData(term) {
+            const isSingleWord = !term.includes(' ');
+            const prompt = isSingleWord
+                ? `Provide a detailed dictionary entry for the English word "${term}" for an A1 learner. Format the response strictly as follows, with each item on a new line:
+IPA: [International Phonetic Alphabet]
+TYPE: [Part of speech, e.g., noun, verb, adjective]
+EN: [Simple English definition]
+VI: [Vietnamese translation]
+EX: [A simple example sentence]`
+                : `Analyze the English phrase "${term}" for an A1 learner. Format the response strictly as follows, with each item on a new line:
+TYPE: [Type of phrase, e.g., verb phrase, idiom]
+EN: [Simple English definition]
+VI: [Vietnamese translation]
+EX: [A simple example sentence]`;
+
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            const result = await callGeminiAPI(payload);
+            const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!text) throw new Error("No data received from API.");
+            return parseAPIData(text, term);
+        }
+        
+        function parseAPIData(text, originalTerm) {
+            const lines = text.split('\n');
+            const data = { word: originalTerm };
+            lines.forEach(line => {
+                const parts = line.split(':');
+                if (parts.length >= 2) {
+                    const key = parts[0].trim().toLowerCase();
+                    const value = parts.slice(1).join(':').trim();
+                    if (key === 'ipa') data.ipa = value;
+                    if (key === 'type') data.pos = value;
+                    if (key === 'en') data.en = value;
+                    if (key === 'vi') data.vi = value;
+                    if (key === 'ex') data.ex = value;
+                }
+            });
+            return data;
+        }
+
         async function getPhraseTooltip(phrase) {
             hideDynamicTooltip();
-            dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span><button id="save-word-btn" class="selection-menu-btn" style="display:none;">📖 Lưu vào sổ tay</button>';
+            dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span>';
             showDynamicTooltip(window.lastMouseUpEvent);
 
-            const prompt = `Phân tích cụm từ tiếng Anh sau cho người học trình độ A1: "${phrase}".
-Cung cấp thông tin theo định dạng sau, mỗi mục trên một dòng mới:
-TYPE: [Loại cụm từ, ví dụ: verb phrase, prepositional phrase, idiom]
-EN: [Giải thích nghĩa bằng tiếng Anh đơn giản]
-VI: [Dịch sang tiếng Việt]
-EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
-            
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             try {
-                const result = await callGeminiAPI(payload);
-                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (text) {
-                    const parsed = parseTooltipResponse(text);
-                    const wordData = {
-                        word: phrase,
-                        pos: parsed.TYPE || 'N/A',
-                        en: parsed.EN || 'N/A',
-                        vi: parsed.VI || 'N/A',
-                        ex: parsed.EX || 'N/A'
-                    };
-                    const tooltipContent = `
-                        <span class="tooltip-word">${wordData.word}</span>
-                        <span class="tooltip-pos">${wordData.pos}</span>
-                        <span class="tooltip-en">${wordData.en}</span>
-                        <span class="tooltip-vi">${wordData.vi}</span>
-                        <span class="tooltip-ex">${wordData.ex}</span>
-                        <button id="save-word-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>
-                    `;
-                    dynamicTooltip.innerHTML = tooltipContent;
-                    document.getElementById('save-word-btn').onclick = () => {
-                        addToNotebook(wordData);
-                        hideDynamicTooltip();
-                    };
-                    showDynamicTooltip(window.lastMouseUpEvent);
-                } else {
-                    throw new Error("No data for phrase tooltip.");
-                }
+                const wordData = await fetchWordData(phrase);
+                const tooltipContent = `
+                    <span class="tooltip-word">${wordData.word}</span>
+                    ${wordData.ipa ? `<span class="tooltip-ipa">${wordData.ipa}</span>` : ''}
+                    <span class="tooltip-pos">${wordData.pos || 'N/A'}</span>
+                    <span class="tooltip-en">${wordData.en || 'N/A'}</span>
+                    <span class="tooltip-vi">${wordData.vi || 'N/A'}</span>
+                    <span class="tooltip-ex">${wordData.ex || 'N/A'}</span>
+                    <button id="save-word-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>
+                `;
+                dynamicTooltip.innerHTML = tooltipContent;
+                document.getElementById('save-word-btn').onclick = () => {
+                    addToNotebook(wordData);
+                    hideDynamicTooltip();
+                };
+                showDynamicTooltip(window.lastMouseUpEvent);
             } catch (error) {
                 dynamicTooltip.innerHTML = '<span>Không thể tra cứu.</span>';
                 console.error("Phrase tooltip error:", error);
             }
-        }
-
-        function parseTooltipResponse(text) {
-            const lines = text.split('\n');
-            const data = {};
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const key = parts[0].trim();
-                    const value = parts.slice(1).join(':').trim();
-                    data[key] = value;
-                }
-            });
-            return data;
         }
 
         function showDynamicTooltip(e) {
@@ -2976,14 +2981,38 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                 lessonWords.push(wordData);
                 saveNotebook();
                 alert(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
+                if (notebookContainer.classList.contains('active')) {
+                    renderNotebook();
+                }
             } else {
                 alert(`'${wordData.word}' đã có trong sổ tay.`);
+            }
+        }
+        
+        function displayWordDetail(word, showSaveButton = false) {
+            const detailContent = `
+                <span class="tooltip-word">${word.word}</span>
+                ${word.ipa ? `<span class="tooltip-ipa">${word.ipa}</span>` : ''}
+                <span class="tooltip-pos">${word.pos || 'N/A'}</span>
+                <span class="tooltip-en">${word.en || 'N/A'}</span>
+                <span class="tooltip-vi">${word.vi || 'N/A'}</span>
+                <span class="tooltip-ex">${word.ex || 'N/A'}</span>
+                ${showSaveButton ? `<button id="notebook-save-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>` : ''}
+            `;
+            notebookWordDetailContent.innerHTML = detailContent;
+
+            if (showSaveButton) {
+                document.getElementById('notebook-save-btn').onclick = () => {
+                    addToNotebook(word);
+                    displayWordDetail(word, false);
+                    renderNotebook();
+                };
             }
         }
 
         function renderNotebook() {
             notebookListContainer.innerHTML = '';
-            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Chọn một từ để xem chi tiết.</p>';
+            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Chọn một từ để xem chi tiết hoặc tra từ mới ở dưới.</p>';
             notebookTitle.textContent = `Sổ tay: Lesson ${currentLessonId}`;
             const lessonWords = savedWords[currentLessonId] || [];
 
@@ -3002,20 +3031,25 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                 item.addEventListener('click', (e) => {
                     wordList.querySelectorAll('.notebook-word-item').forEach(el => el.classList.remove('active'));
                     e.target.classList.add('active');
-
-                    const detailContent = `
-                        <span class="tooltip-word">${word.word}</span>
-                        <span class="tooltip-ipa">${word.ipa}</span>
-                        <span class="tooltip-pos">${word.pos}</span>
-                        <span class="tooltip-en">${word.en}</span>
-                        <span class="tooltip-vi">${word.vi}</span>
-                        <span class="tooltip-ex">${word.ex}</span>
-                    `;
-                    notebookWordDetailContent.innerHTML = detailContent;
+                    displayWordDetail(word);
                 });
                 wordList.appendChild(item);
             });
             notebookListContainer.appendChild(wordList);
+        }
+        
+        async function lookupWordInNotebook(word) {
+            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Đang tra cứu...</p>';
+            notebookSendBtn.disabled = true;
+            try {
+                const wordData = await fetchWordData(word);
+                displayWordDetail(wordData, true);
+            } catch (error) {
+                notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--accent-danger);">Không thể tra cứu từ này. Vui lòng thử lại.</p>';
+                console.error("Notebook lookup error:", error);
+            } finally {
+                notebookSendBtn.disabled = false;
+            }
         }
         
         function toggleNotebook(forceState) {
@@ -3072,10 +3106,25 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         document.getElementById('back-to-home-from-content-btn').onclick = showHomeView;
         document.getElementById('back-to-lesson-btn').onclick = () => { if (currentLessonId) showLessonView(currentLessonId); };
         
-        // New Listeners
+        // Notebook Listeners
         notebookFab.addEventListener('click', () => toggleNotebook());
         notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
+        const handleNotebookLookup = () => {
+            const word = notebookInput.value.trim();
+            if (word && !notebookSendBtn.disabled) {
+                lookupWordInNotebook(word);
+                notebookInput.value = '';
+            }
+        };
+        notebookSendBtn.addEventListener('click', handleNotebookLookup);
+        notebookInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleNotebookLookup();
+            }
+        });
 
+        // Gram Assistant Listeners
         gramFab.addEventListener('click', () => toggleGramAssistant());
         gramCloseBtn.addEventListener('click', () => toggleGramAssistant(false));
         
@@ -3098,6 +3147,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             }
         });
 
+        // Text Selection Listeners
         const handleSelection = (e) => {
             if (selectionMenu.contains(e.target) || e.target.closest('.highlight') || notebookContainer.contains(e.target) || dynamicTooltip.contains(e.target)) {
                 return;
@@ -3138,6 +3188,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             hideSelectionMenu();
         });
 
+        // Media Player Listeners
         mediaUploadInput.addEventListener('change', handleMediaUpload);
         playPauseBtn.addEventListener('click', togglePlayPause);
         audioPlayback.addEventListener('timeupdate', updateProgress);
@@ -3150,6 +3201,15 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
+            // This is a placeholder. In a real environment, you would call your backend proxy.
+            // For this example, we'll use a mock response.
+            // To make this work, you need a backend that forwards requests to the Gemini API.
+            // We'll simulate a delay.
+            await new Promise(res => setTimeout(res, 1000));
+            
+            // NOTE: The following fetch call is commented out because it requires a server-side proxy
+            // to securely handle the API key. You would uncomment and adapt this in a real deployment.
+            /*
             const proxyApiUrl = '/api/proxy'; 
             try {
                 const response = await fetch(proxyApiUrl, { 
@@ -3173,6 +3233,15 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                 console.error("API call failed after retries:", error);
                 throw error;
             }
+            */
+            
+            // Mock response for demonstration without a backend:
+            const mockText = `IPA: /mɒk/
+TYPE: verb
+EN: to imitate or copy someone's actions or words in order to make fun of them.
+VI: chế nhạo, bắt chước
+EX: He tried to mock the teacher's voice.`;
+            return Promise.resolve({ candidates: [{ content: { parts: [{ text: mockText }] } }] });
         }
 
         // --- Initialization --- //

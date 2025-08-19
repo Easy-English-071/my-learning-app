@@ -126,7 +126,7 @@
             border-radius: var(--radius-md); border: 1px solid var(--glass-border);
             box-shadow: inset 0 2px 4px var(--shadow-color); height: 450px;
             overflow-y: auto; color: var(--text-primary); line-height: 1.7;
-            overflow-x: hidden; /* [SỬA LỖI] Ngăn cuộn ngang không cần thiết */
+            overflow-x: hidden;
         }
         #content-body::-webkit-scrollbar { width: 8px; }
         #content-body::-webkit-scrollbar-track { background: transparent; }
@@ -197,12 +197,11 @@
         audio { display: none; }
         #video-playback { width: 100%; border-radius: var(--radius-md); background-color: #000; display: none; }
         
-        /* [MỚI] Nút thay đổi file */
         #change-media-btn {
-            display: none; /* Ẩn mặc định */
+            display: none;
             padding: 0.5rem 1rem;
             font-size: 0.8rem;
-            margin-top: -0.5rem; /* Giảm khoảng cách với tên file */
+            margin-top: -0.5rem;
         }
 
         /* --- Trợ lý Ngữ pháp Gram --- */
@@ -472,6 +471,15 @@
                 bottom: calc(1rem + 15px);
                 right: calc(1rem + 65px);
             }
+            /* [SỬA LỖI] Dàn trang trên điện thoại */
+            .dialogue-line {
+                font-size: 0.95rem;
+            }
+            .speaker {
+                width: 70px;
+                padding-right: 0.5rem;
+                margin-right: 0.5rem;
+            }
         }
     </style>
 </head>
@@ -514,7 +522,6 @@
                         <input type="file" id="media-upload-input" accept="audio/*,video/*">
                         <p id="media-filename"></p>
                         
-                        <!-- [MỚI] Nút để thay đổi file đã tải lên -->
                         <button id="change-media-btn" class="btn btn-secondary">Thay đổi file</button>
 
                         <div class="audio-player-controls">
@@ -2446,7 +2453,7 @@
         const timeDisplay = document.getElementById('time-display');
         const waveformCanvas = document.getElementById('waveform-canvas');
         const waveformCtx = waveformCanvas.getContext('2d');
-        const changeMediaBtn = document.getElementById('change-media-btn'); // [MỚI]
+        const changeMediaBtn = document.getElementById('change-media-btn');
 
         // --- State Management --- //
         let currentLessonId = null;
@@ -2559,14 +2566,14 @@
             uploadLabel.style.display = 'flex';
             audioPlayerControls.style.display = 'none';
             videoPlayback.style.display = 'none';
-            changeMediaBtn.style.display = 'none'; // [MỚI] Ẩn nút thay đổi file
+            changeMediaBtn.style.display = 'none';
         }
 
         function loadMedia(mediaData) {
             resetMediaPlayer(); 
             mediaFilename.textContent = mediaData.name;
             uploadLabel.style.display = 'none';
-            changeMediaBtn.style.display = 'inline-flex'; // [MỚI] Hiện nút thay đổi file
+            changeMediaBtn.style.display = 'inline-flex';
 
             if (mediaData.type.startsWith('audio/')) {
                 audioPlayback.src = mediaData.url;
@@ -2943,7 +2950,6 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             hideSelectionMenu();
         });
 
-        // [CẬP NHẬT] Media player event listeners
         mediaUploadInput.addEventListener('change', handleMediaUpload);
         playPauseBtn.addEventListener('click', togglePlayPause);
         audioPlayback.addEventListener('timeupdate', updateProgress);
@@ -2952,9 +2958,9 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             pauseIcon.style.display = 'none';
         });
         progressContainer.addEventListener('click', setProgress);
-        changeMediaBtn.addEventListener('click', () => mediaUploadInput.click()); // [MỚI]
+        changeMediaBtn.addEventListener('click', () => mediaUploadInput.click());
 
-        // --- [SỬA LỖI] Gemini API Call --- //
+        // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
             const proxyApiUrl = '/api/proxy'; 
             try {

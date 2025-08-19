@@ -202,7 +202,7 @@
         #media-filename { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); word-break: break-all; text-align: center; margin-bottom: 0.5rem; }
         #media-upload-input { display: none; }
         .audio-player-controls { display: flex; flex-direction: column; gap: 1rem; width: 100%; }
-        #waveform-canvas { width: 100%; height: 60px; background-color: rgba(0,0,0,0.05); border-radius: var(--radius-sm); }
+        #waveform-canvas { width: 100%; height: 60px; background-color: rgba(255, 255, 255, 0.3); border-radius: var(--radius-sm); }
         .audio-controls { display: flex; align-items: center; gap: 1rem; width: 100%; }
         #play-pause-btn { background: none; border: none; cursor: pointer; padding: 0; }
         #play-pause-btn svg { width: 36px; height: 36px; color: var(--accent-primary); }
@@ -2721,22 +2721,19 @@
 
         function drawWaveform() {
             waveformAnimationId = requestAnimationFrame(drawWaveform);
-            analyser.getByteFrequencyData(waveformDataArray);
+            if(analyser) {
+                analyser.getByteFrequencyData(waveformDataArray);
+                waveformCtx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+                const barWidth = (waveformCanvas.width / waveformDataArray.length) * 1.5;
+                let barHeight;
+                let x = 0;
 
-            waveformCtx.fillStyle = 'rgba(0,0,0,0.05)';
-            waveformCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
-
-            const barWidth = (waveformCanvas.width / waveformDataArray.length) * 1.5;
-            let barHeight;
-            let x = 0;
-
-            for (let i = 0; i < waveformDataArray.length; i++) {
-                barHeight = waveformDataArray[i] / 2;
-                
-                waveformCtx.fillStyle = `rgba(0, 124, 240, ${barHeight / 150})`;
-                waveformCtx.fillRect(x, waveformCanvas.height - barHeight, barWidth, barHeight);
-
-                x += barWidth + 1;
+                for (let i = 0; i < waveformDataArray.length; i++) {
+                    barHeight = waveformDataArray[i] / 2;
+                    waveformCtx.fillStyle = `rgba(0, 124, 240, ${barHeight / 150})`;
+                    waveformCtx.fillRect(x, waveformCanvas.height - barHeight, barWidth, barHeight);
+                    x += barWidth + 1;
+                }
             }
         }
 
@@ -3065,6 +3062,51 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             saveNotebook();
         }
 
+        async function lookupWordInNotebook(word) {
+            notebookWordDetailContent.innerHTML = '<span>Đang tra cứu...</span>';
+            const prompt = `Phân tích từ tiếng Anh sau cho người học trình độ A1: "${word}". Cung cấp thông tin theo định dạng sau, mỗi mục trên một dòng mới: IPA: [Phiên âm] TYPE: [Loại từ, ví dụ: noun, verb] EN: [Giải thích nghĩa bằng tiếng Anh đơn giản] VI: [Dịch sang tiếng Việt] EX: [Một câu ví dụ đơn giản sử dụng từ này]`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+            try {
+                const result = await callGeminiAPI(payload);
+                const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                    const parsed = parseTooltipResponse(text);
+                    const wordData = {
+                        word: word,
+                        ipa: parsed.IPA || 'N/A',
+                        pos: parsed.TYPE || 'N/A',
+                        en: parsed.EN || 'N/A',
+                        vi: parsed.VI || 'N/A',
+                        ex: parsed.EX || 'N/A'
+                    };
+
+                    const detailContent = `
+                        <span class="tooltip-word">${wordData.word}</span>
+                        <span class="tooltip-ipa">${wordData.ipa}</span>
+                        <span class="tooltip-pos">${wordData.pos}</span>
+                        <span class="tooltip-en">${wordData.en}</span>
+                        <span class="tooltip-vi">${wordData.vi}</span>
+                        <span class="tooltip-ex">${wordData.ex}</span>
+                        <button id="save-new-word-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>
+                    `;
+                    notebookWordDetailContent.innerHTML = detailContent;
+
+                    document.getElementById('save-new-word-btn').onclick = () => {
+                        addToNotebook(wordData);
+                        renderNotebook();
+                    };
+                } else {
+                    throw new Error("No data for word lookup.");
+                }
+            } catch (error) {
+                notebookWordDetailContent.innerHTML = '<span>Không thể tra cứu từ này.</span>';
+                console.error("Notebook word lookup error:", error);
+            } finally {
+                notebookInput.value = '';
+            }
+        }
+
 
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
@@ -3074,6 +3116,17 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         // New Listeners
         notebookFab.addEventListener('click', () => toggleNotebook());
         notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
+        notebookSendBtn.addEventListener('click', () => {
+            const word = notebookInput.value.trim();
+            if (word) lookupWordInNotebook(word);
+        });
+        notebookInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const word = notebookInput.value.trim();
+                if (word) lookupWordInNotebook(word);
+            }
+        });
 
         gramFab.addEventListener('click', () => toggleGramAssistant());
         gramCloseBtn.addEventListener('click', () => toggleGramAssistant(false));

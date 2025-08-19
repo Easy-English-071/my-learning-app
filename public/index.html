@@ -3201,47 +3201,37 @@ EX: [A simple example sentence]`;
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            // This is a placeholder. In a real environment, you would call your backend proxy.
-            // For this example, we'll use a mock response.
-            // To make this work, you need a backend that forwards requests to the Gemini API.
-            // We'll simulate a delay.
-            await new Promise(res => setTimeout(res, 1000));
+            const apiKey = ""; // API key will be automatically provided in the execution environment.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
-            // NOTE: The following fetch call is commented out because it requires a server-side proxy
-            // to securely handle the API key. You would uncomment and adapt this in a real deployment.
-            /*
-            const proxyApiUrl = '/api/proxy'; 
             try {
-                const response = await fetch(proxyApiUrl, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payload) 
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
+
                 if (!response.ok) {
+                    // Implement exponential backoff for rate limiting errors
                     if (response.status === 429 && retries > 0) {
-                        await new Promise(r => setTimeout(r, delay));
+                        await new Promise(resolve => setTimeout(resolve, delay));
                         return callGeminiAPI(payload, retries - 1, delay * 2);
                     }
                     throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
+                
                 return await response.json();
             } catch (error) {
+                 // Retry on network errors
                 if (retries > 0) {
-                    await new Promise(r => setTimeout(r, delay));
+                    await new Promise(resolve => setTimeout(resolve, delay));
                     return callGeminiAPI(payload, retries - 1, delay * 2);
                 }
                 console.error("API call failed after retries:", error);
                 throw error;
             }
-            */
-            
-            // Mock response for demonstration without a backend:
-            const mockText = `IPA: /mɒk/
-TYPE: verb
-EN: to imitate or copy someone's actions or words in order to make fun of them.
-VI: chế nhạo, bắt chước
-EX: He tried to mock the teacher's voice.`;
-            return Promise.resolve({ candidates: [{ content: { parts: [{ text: mockText }] } }] });
         }
 
         // --- Initialization --- //

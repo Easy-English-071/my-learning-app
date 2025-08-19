@@ -2476,6 +2476,7 @@
 </div>`
                 }
             }
+
         };
 
         // --- DOM Elements --- //
@@ -3270,14 +3271,10 @@
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            // This is a placeholder for your actual Gemini API endpoint.
-            // In a real application, you would have a backend proxy to handle this securely.
-            // For this example, we'll simulate the API call.
-            const apiKey = ""; // IMPORTANT: Leave this empty. Canvas will handle it.
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
+            // FIX: Reverted to use the proxy URL as it was in the original code
+            const proxyApiUrl = '/api/proxy'; 
             try {
-                const response = await fetch(apiUrl, { 
+                const response = await fetch(proxyApiUrl, { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' }, 
                     body: JSON.stringify(payload) 

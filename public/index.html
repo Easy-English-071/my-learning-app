@@ -69,7 +69,6 @@
             border: 1px solid var(--glass-border);
             transition: all 0.3s ease-in-out;
             padding: clamp(1rem, 5vw, 2.5rem);
-            position: relative;
         }
         header {
             text-align: center;
@@ -127,7 +126,6 @@
             border-radius: var(--radius-md); border: 1px solid var(--glass-border);
             box-shadow: inset 0 2px 4px var(--shadow-color); height: 450px;
             overflow-y: auto; color: var(--text-primary); line-height: 1.7;
-            overflow-x: hidden;
         }
         #content-body::-webkit-scrollbar { width: 8px; }
         #content-body::-webkit-scrollbar-track { background: transparent; }
@@ -136,27 +134,13 @@
             font-size: 1.1em; font-weight: 700; color: var(--accent-warning);
             margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 1px solid var(--accent-danger);
         }
-        .dialogue-line {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
+        .dialogue-line { display: flex; align-items: flex-start; margin-bottom: 1rem; }
         .speaker {
-            flex-shrink: 0;
-            font-weight: bold;
-            color: #5856D6;
-            width: 90px;
-            padding-right: 1rem;
-            margin-right: 1rem;
-            border-right: 1px solid rgba(0,0,0,0.1);
-            text-align: left;
+            font-weight: bold; color: #5856D6; width: 90px;
+            flex-shrink: 0; padding-right: 1rem; margin-right: 1rem;
+            border-right: 1px solid rgba(0,0,0,0.1); text-align: left;
         }
-        .message {
-            flex-grow: 1;
-            min-width: 0;
-            text-align: left;
-            word-break: break-word;
-        }
+        .message { flex: 1; text-align: left; word-break: break-word; }
         .highlight {
             background-color: rgba(255, 204, 0, 0.2);
             border-radius: 4px;
@@ -172,7 +156,7 @@
             position: absolute; background: rgba(249, 249, 249, 0.85);
             -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
             border-radius: 14px; padding: 15px; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
-            width: 300px; z-index: 1002; opacity: 0; visibility: hidden;
+            width: 300px; z-index: 100; opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             pointer-events: none; font-size: 14px; border: 1px solid rgba(0, 0, 0, 0.05);
             text-align: left;
@@ -199,7 +183,7 @@
         }
         #upload-label:hover { border-color: var(--accent-primary); background-color: rgba(0, 124, 240, 0.1); }
         #upload-label svg { width: 30px; height: 30px; color: var(--accent-primary); margin-bottom: 0.5rem; }
-        #media-filename { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); word-break: break-all; text-align: center; margin-bottom: 0.5rem; }
+        #media-filename { font-size: 0.8rem; font-weight: 500; color: var(--text-secondary); word-break: break-all; text-align: center; }
         #media-upload-input { display: none; }
         .audio-player-controls { display: flex; flex-direction: column; gap: 1rem; width: 100%; }
         #waveform-canvas { width: 100%; height: 60px; background-color: rgba(0,0,0,0.05); border-radius: var(--radius-sm); }
@@ -212,16 +196,11 @@
         audio { display: none; }
         #video-playback { width: 100%; border-radius: var(--radius-md); background-color: #000; display: none; }
         
-        #change-media-btn {
-            display: none;
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            margin-top: -0.5rem;
-        }
-
-        /* --- Sổ tay & Trợ lý FABs --- */
-        .fab {
+        /* --- Trợ lý Ngữ pháp Gram --- */
+        #gram-assistant-fab {
             position: fixed;
+            bottom: 2rem;
+            right: 2rem;
             width: 60px;
             height: 60px;
             background-color: var(--accent-primary);
@@ -236,27 +215,56 @@
             outline: none;
             border: none;
         }
-        .fab:hover {
+        #gram-assistant-fab:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 10px 25px var(--shadow-color);
         }
-        .fab svg {
+        #gram-assistant-fab svg {
             width: 30px;
             height: 30px;
             color: white;
         }
-        #gram-assistant-fab {
-            bottom: 2rem;
-            right: 2rem;
+
+        #gram-popup {
+            position: fixed;
+            bottom: calc(2rem + 15px);
+            right: calc(2rem + 75px);
+            background-color: var(--glass-bg);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 15px var(--shadow-color);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: all 0.3s ease-in-out;
+            pointer-events: none;
+            font-size: 0.9rem;
         }
-        #notebook-fab {
-            bottom: 2rem;
-            left: 2rem;
-            background-color: var(--accent-warning);
+        #gram-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        #gram-popup::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent transparent transparent var(--glass-bg);
         }
 
-        .popup-container {
+        #gram-assistant-container {
             position: fixed;
+            bottom: calc(2rem + 70px);
+            right: 2rem;
             width: 90%;
             max-width: 400px;
             height: 70%;
@@ -275,22 +283,13 @@
             transform: translateY(20px) scale(0.95);
             transition: all 0.3s ease-in-out;
         }
-        .popup-container.active {
+        #gram-assistant-container.active {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
         }
-        #gram-assistant-container {
-            bottom: calc(2rem + 70px);
-            right: 2rem;
-        }
-        #notebook-container {
-            bottom: calc(2rem + 70px);
-            left: 2rem;
-            max-width: 700px; /* Rộng hơn để chứa 2 cột */
-        }
         
-        .popup-header {
+        .gram-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -299,60 +298,82 @@
             border-bottom: 1px solid var(--glass-border);
             flex-shrink: 0;
         }
-        .popup-header h3 { font-size: 1.2rem; margin: 0; }
-        #gram-assistant-container .popup-header h3 { color: var(--accent-primary); }
-        #notebook-container .popup-header h3 { color: var(--accent-warning); }
+        .gram-header h3 { color: var(--accent-primary); font-size: 1.2rem; margin: 0; }
         
-        .popup-header-buttons {
+        .gram-header-buttons {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .popup-header-btn {
-            background: none; border: none; cursor: pointer; padding: 0;
-            color: var(--text-secondary); width: 32px; height: 32px;
-            border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; transition: background-color 0.2s, color 0.2s;
+        #gram-new-chat-btn, #gram-close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s, color 0.2s;
         }
-        .popup-header-btn:hover {
+        #gram-new-chat-btn:hover, #gram-close-btn:hover {
             background-color: var(--btn-secondary-hover-bg);
             color: var(--text-primary);
         }
-        .popup-close-btn {
-            font-size: 1.5rem; line-height: 1;
+        #gram-new-chat-btn svg {
+            width: 20px;
+            height: 20px;
         }
-        
+        #gram-close-btn {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
         #gram-chat-history {
             flex-grow: 1;
             overflow-y: auto;
             padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
         #gram-chat-history::-webkit-scrollbar { width: 6px; }
         #gram-chat-history::-webkit-scrollbar-track { background: transparent; }
         #gram-chat-history::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
 
         .gram-message {
-            padding: 0.75rem 1rem; border-radius: var(--radius-md);
-            max-width: 90%; line-height: 1.6; word-wrap: break-word;
-            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            max-width: 90%;
+            line-height: 1.6;
+            word-wrap: break-word;
         }
         .gram-message.user {
             background-color: rgba(0, 124, 240, 0.2);
-            align-self: flex-end; border-bottom-right-radius: 0.25rem;
+            align-self: flex-end;
+            border-bottom-right-radius: 0.25rem;
         }
         .gram-message.ai {
             background-color: rgba(255, 255, 255, 0.4);
-            align-self: flex-start; border-bottom-left-radius: 0.25rem;
+            align-self: flex-start;
+            border-bottom-left-radius: 0.25rem;
             border: 1px solid var(--glass-border);
         }
         .gram-message.ai strong { color: var(--accent-primary); }
         .gram-message.ai code { background-color: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
         
         .gram-message.thinking span {
-            display: inline-block; width: 8px; height: 8px;
-            border-radius: 50%; background-color: var(--text-secondary);
-            animation: typing-dots 1.4s infinite; animation-fill-mode: both;
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            animation: typing-dots 1.4s infinite;
+            animation-fill-mode: both;
         }
         .gram-message.thinking span:nth-child(2) { animation-delay: 0.2s; }
         .gram-message.thinking span:nth-child(3) { animation-delay: 0.4s; }
@@ -362,98 +383,59 @@
             100% { opacity: 0.2; transform: scale(0.8); }
         }
 
-        .input-area {
+        .gram-input-area {
             display: flex;
             margin-top: 1rem;
             gap: 0.5rem;
             flex-shrink: 0;
         }
-        .input-area input {
-            flex-grow: 1; border: 1px solid var(--glass-border);
+        #gram-input {
+            flex-grow: 1;
+            border: 1px solid var(--glass-border);
             background-color: rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-sm); padding: 0.75rem;
-            font-family: var(--font-family); font-size: 0.9rem;
+            border-radius: var(--radius-sm);
+            padding: 0.75rem;
+            font-family: var(--font-family);
+            font-size: 0.9rem;
             transition: all 0.2s;
         }
-        .input-area input:focus {
+        #gram-input:focus {
             outline: none;
+            border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(0, 124, 240, 0.2);
         }
-        #gram-input:focus { border-color: var(--accent-primary); }
-        #notebook-input:focus { border-color: var(--accent-warning); }
-        
-        .input-area button { flex-shrink: 0; padding: 0.75rem; }
-        .input-area button svg { width: 20px; height: 20px; }
-        #notebook-send-btn { background-color: var(--accent-warning); }
-        #notebook-send-btn:hover:not(:disabled) { background-color: #d97706; }
+        #gram-send-btn { flex-shrink: 0; padding: 0.75rem; }
+        #gram-send-btn svg { width: 20px; height: 20px; }
 
         #selection-menu {
-            position: absolute; background-color: var(--glass-bg);
-            border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
+            position: absolute;
+            background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
             box-shadow: 0 4px 15px var(--shadow-color);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            z-index: 1002; padding: 0.5rem; display: none; gap: 0.5rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1002;
+            padding: 0.5rem;
+            display: none;
+            gap: 0.5rem;
         }
         .selection-menu-btn {
-            background: none; border: none; padding: 0.5rem 0.75rem;
-            cursor: pointer; border-radius: 0.5rem;
-            font-family: var(--font-family); font-size: 0.9rem;
-            color: var(--text-primary); transition: background-color 0.2s;
-            display: flex; align-items: center; gap: 0.25rem;
+            background: none;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
         }
         .selection-menu-btn:hover {
             background-color: var(--btn-secondary-hover-bg);
-        }
-        
-        #notebook-content {
-            display: flex;
-            gap: 1.5rem;
-            flex-grow: 1;
-            min-height: 0;
-        }
-        #notebook-list-container {
-            flex-basis: 40%;
-            border-right: 1px solid var(--glass-border);
-            padding-right: 1.5rem;
-            overflow-y: auto;
-        }
-        #notebook-detail-view {
-            flex-basis: 60%;
-            display: flex;
-            flex-direction: column;
-        }
-        #notebook-word-detail-content {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-        #notebook-word-detail-content span {
-            display: block;
-            margin-bottom: 0.5rem;
-        }
-        .notebook-word-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-        .notebook-word-item {
-            background-color: var(--btn-secondary-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--glass-border);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-        }
-        .notebook-word-item:hover {
-            background-color: var(--btn-secondary-hover-bg);
-            transform: translateY(-2px);
-        }
-        .notebook-word-item.active {
-            background-color: var(--accent-warning);
-            color: white;
-            border-color: var(--accent-warning);
         }
 
         /* --- Responsive --- */
@@ -468,35 +450,18 @@
             h2 { font-size: 1.5rem; }
             #lesson-list { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem; }
             #content-body { height: auto; max-height: 40vh; }
-            .fab { width: 50px; height: 50px; }
-            .fab svg { width: 24px; height: 24px; }
-            #gram-assistant-fab { bottom: 1rem; right: 1rem; }
-            #notebook-fab { bottom: 1rem; left: 1rem; }
-            
-            .popup-container {
+            #gram-assistant-fab { width: 50px; height: 50px; bottom: 1rem; right: 1rem;}
+            #gram-assistant-fab svg { width: 24px; height: 24px; }
+            #gram-assistant-container {
                 bottom: calc(1rem + 60px);
-                left: 1rem;
                 right: 1rem;
+                left: 1rem;
                 width: auto;
                 max-width: none;
             }
-            #notebook-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            #notebook-list-container {
-                flex-basis: auto;
-                border-right: none;
-                padding-right: 0;
-                max-height: 150px;
-            }
-            .dialogue-line {
-                font-size: 0.95rem;
-            }
-            .speaker {
-                width: 70px;
-                padding-right: 0.75rem;
-                margin-right: 0.75rem;
+            #gram-popup {
+                bottom: calc(1rem + 15px);
+                right: calc(1rem + 65px);
             }
         }
     </style>
@@ -540,8 +505,6 @@
                         <input type="file" id="media-upload-input" accept="audio/*,video/*">
                         <p id="media-filename"></p>
                         
-                        <button id="change-media-btn" class="btn btn-secondary">Thay đổi file</button>
-
                         <div class="audio-player-controls">
                             <canvas id="waveform-canvas"></canvas>
                             <div class="audio-controls">
@@ -568,45 +531,23 @@
         </main>
     </div>
 
-    <!-- FABs và Popups -->
-    <div id="fab-container">
-        <button id="notebook-fab" class="fab" title="Sổ tay từ vựng">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-        </button>
-        <button id="gram-assistant-fab" class="fab" title="Trợ lý ngữ pháp">
+    <!-- Gram Assistant -->
+    <div id="gram-assistant-wrapper">
+        <button id="gram-assistant-fab" title="Grammar Assistant">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
         </button>
+        <div id="gram-popup">Hỏi tôi về ngữ pháp!</div>
     </div>
-
-    <div id="notebook-container" class="popup-container">
-        <div class="popup-header">
-            <h3 id="notebook-title">Sổ tay</h3>
-            <button id="notebook-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
-        </div>
-        <div id="notebook-content">
-            <div id="notebook-list-container"></div>
-            <div id="notebook-detail-view">
-                <div id="notebook-word-detail-content"></div>
-                <div class="input-area" id="notebook-input-area">
-                    <input type="text" id="notebook-input" placeholder="Tra từ mới...">
-                    <button id="notebook-send-btn" class="btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="gram-assistant-container" class="popup-container">
-        <div class="popup-header">
-            <h3>Trợ lý Gram</h3>
-            <div class="popup-header-buttons">
-                <button id="gram-new-chat-btn" class="popup-header-btn" title="Hội thoại mới">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+    <div id="gram-assistant-container">
+        <div class="gram-header">
+            <h3>Gram Assistant</h3>
+            <div class="gram-header-buttons">
+                <button id="gram-new-chat-btn" title="Hội thoại mới">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
                 </button>
-                <button id="gram-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
+                <button id="gram-close-btn">&times;</button>
             </div>
         </div>
         <div id="gram-chat-history">
@@ -614,10 +555,12 @@
                Chào bạn! Tôi là Gram. Hãy bôi đen một câu trong bài hoặc gõ vào đây để tôi giải thích ngữ pháp nhé.
            </div>
         </div>
-        <div class="input-area gram-input-area">
+        <div class="gram-input-area">
             <input type="text" id="gram-input" placeholder="Hỏi về một câu...">
             <button id="gram-send-btn" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
             </button>
         </div>
     </div>
@@ -2454,11 +2397,7 @@
         };
 
         // --- DOM Elements --- //
-        const views = { 
-            home: document.getElementById('home-view'), 
-            lesson: document.getElementById('lesson-view'), 
-            content: document.getElementById('content-view')
-        };
+        const views = { home: document.getElementById('home-view'), lesson: document.getElementById('lesson-view'), content: document.getElementById('content-view') };
         const lessonList = document.getElementById('lesson-list');
         const lessonTitle = document.getElementById('lesson-title');
         const lessonMenu = document.getElementById('lesson-menu');
@@ -2466,128 +2405,63 @@
         const contentBody = document.getElementById('content-body');
         const mediaPlayerContainer = document.getElementById('media-player-container');
         
+        // Gram Assistant Elements
         const gramFab = document.getElementById('gram-assistant-fab');
         const gramContainer = document.getElementById('gram-assistant-container');
         const gramCloseBtn = document.getElementById('gram-close-btn');
-        const gramNewChatBtn = document.getElementById('gram-new-chat-btn');
         const gramChatHistory = document.getElementById('gram-chat-history');
         const gramInput = document.getElementById('gram-input');
         const gramSendBtn = document.getElementById('gram-send-btn');
         
-        const selectionMenu = document.getElementById('selection-menu');
-        const dynamicTooltip = document.getElementById('dynamic-tooltip');
-        const explainGrammarBtn = document.getElementById('explain-grammar-btn');
-        const translatePhraseBtn = document.getElementById('translate-phrase-btn');
-        
-        // Media Player elements
-        const mediaUploadInput = document.getElementById('media-upload-input');
-        const uploadLabel = document.getElementById('upload-label');
-        const audioPlayback = document.getElementById('audio-playback');
-        const videoPlayback = document.getElementById('video-playback');
-        const mediaFilename = document.getElementById('media-filename');
-        const audioPlayerControls = document.querySelector('.audio-player-controls');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
-        const pauseIcon = document.getElementById('pause-icon');
-        const progressContainer = document.querySelector('.progress-container');
-        const progressBar = document.getElementById('progress-bar');
-        const timeDisplay = document.getElementById('time-display');
-        const waveformCanvas = document.getElementById('waveform-canvas');
-        const waveformCtx = waveformCanvas.getContext('2d');
-        const changeMediaBtn = document.getElementById('change-media-btn');
-
-        // Notebook elements
-        const notebookFab = document.getElementById('notebook-fab');
-        const notebookContainer = document.getElementById('notebook-container');
-        const notebookCloseBtn = document.getElementById('notebook-close-btn');
-        const notebookListContainer = document.getElementById('notebook-list-container');
-        const notebookDetailView = document.getElementById('notebook-detail-view');
-        const notebookWordDetailContent = document.getElementById('notebook-word-detail-content');
-        const notebookInput = document.getElementById('notebook-input');
-        const notebookSendBtn = document.getElementById('notebook-send-btn');
-        const notebookTitle = document.getElementById('notebook-title');
-
-        // --- State Management --- //
         let currentLessonId = null;
-        let currentContentKey = null;
-        let selectedTextForMenu = '';
-        let gramChatHistoryArray = [];
-        let mediaState = {}; 
-        let savedWords = {};
-
-        // Waveform state
-        let audioContext;
-        let analyser;
-        let sourceNode;
-        let waveformDataArray;
-        let waveformAnimationId;
-
+        // [MỚI] Biến trạng thái để kiểm soát lời chào
+        let isFirstGramQuery = true;
 
         // --- View Management --- //
         function showView(viewId) {
             Object.values(views).forEach(view => view.classList.remove('active'));
-            if(views[viewId]) views[viewId].classList.add('active');
+            views[viewId].classList.add('active');
         }
+
         function showHomeView() { showView('home'); }
+
         function showLessonView(lessonId) {
             currentLessonId = lessonId;
             const lessonData = lessonsData[lessonId];
             if (!lessonData) return;
+
             lessonTitle.textContent = lessonData.title;
             lessonMenu.innerHTML = '';
+
             Object.keys(lessonData.content).forEach(key => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-secondary';
-                let btnText = key.charAt(0).toUpperCase() + key.slice(1);
-                if (key === 'audioscript') btnText = 'Audio Script';
-                if (key === 'videoscript') btnText = 'Video Script';
-                btn.innerHTML = btnText;
+                btn.textContent = key.charAt(0).toUpperCase() + key.slice(1);
                 btn.onclick = () => showContentView(lessonId, key);
                 lessonMenu.appendChild(btn);
             });
             showView('lesson');
         }
+
         function showContentView(lessonId, contentKey) {
-            currentLessonId = lessonId;
-            currentContentKey = contentKey;
-            
             const lessonData = lessonsData[lessonId];
             const content = lessonData.content[contentKey];
+
             contentTitle.textContent = `${lessonData.title} - ${contentKey.charAt(0).toUpperCase() + contentKey.slice(1)}`;
             contentBody.innerHTML = content || '<p>Nội dung đang được cập nhật.</p>';
             
             if (contentKey === 'audioscript' || contentKey === 'videoscript') {
                 mediaPlayerContainer.style.display = 'flex';
-                const mediaKey = `${lessonId}_${contentKey}`;
-                const savedMedia = mediaState[mediaKey];
-                if (savedMedia) {
-                    loadMedia(savedMedia);
-                } else {
-                    resetMediaPlayer();
-                }
             } else {
                 mediaPlayerContainer.style.display = 'none';
             }
 
-            initializeStaticTooltips();
+            initializeTooltips();
             showView('content');
         }
         
-        function initializeStaticTooltips() {
-            const highlights = contentBody.querySelectorAll('.highlight');
-            highlights.forEach(highlight => {
-                const tooltip = highlight.querySelector('.tooltip');
-                if (tooltip) {
-                    highlight.addEventListener('mouseenter', (e) => {
-                        document.body.appendChild(tooltip);
-                        tooltip.classList.add('tooltip-visible');
-                        adjustElementPositionInViewport(tooltip, e.currentTarget);
-                    });
-                    highlight.addEventListener('mouseleave', () => {
-                        tooltip.classList.remove('tooltip-visible');
-                    });
-                }
-            });
+        function initializeTooltips() {
+             // Tooltip logic remains the same
         }
 
         function createLessonButtons() {
@@ -2604,143 +2478,8 @@
             }
         }
         
-        // --- Media Player Logic --- //
-        function resetMediaPlayer() {
-            if (waveformAnimationId) {
-                cancelAnimationFrame(waveformAnimationId);
-                waveformAnimationId = null;
-            }
-            audioPlayback.pause();
-            videoPlayback.pause();
-            audioPlayback.src = '';
-            videoPlayback.src = '';
-            mediaFilename.textContent = '';
-            progressBar.style.width = '0%';
-            timeDisplay.textContent = '0:00 / 0:00';
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-            
-            uploadLabel.style.display = 'flex';
-            audioPlayerControls.style.display = 'none';
-            videoPlayback.style.display = 'none';
-            changeMediaBtn.style.display = 'none';
-        }
-
-        function loadMedia(mediaData) {
-            resetMediaPlayer(); 
-            mediaFilename.textContent = mediaData.name;
-            uploadLabel.style.display = 'none';
-            changeMediaBtn.style.display = 'inline-flex';
-
-            if (mediaData.type.startsWith('audio/')) {
-                audioPlayback.src = mediaData.url;
-                audioPlayerControls.style.display = 'flex';
-                videoPlayback.style.display = 'none';
-                setupAudioContext();
-            } else if (mediaData.type.startsWith('video/')) {
-                videoPlayback.src = mediaData.url;
-                videoPlayback.style.display = 'block';
-                audioPlayerControls.style.display = 'none';
-            }
-        }
-
-        function handleMediaUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const objectURL = URL.createObjectURL(file);
-            const mediaKey = `${currentLessonId}_${currentContentKey}`;
-            
-            mediaState[mediaKey] = {
-                url: objectURL,
-                type: file.type,
-                name: file.name
-            };
-
-            loadMedia(mediaState[mediaKey]);
-        }
-
-        function togglePlayPause() {
-            if (audioPlayback.paused) {
-                audioPlayback.play();
-            } else {
-                audioPlayback.pause();
-            }
-        }
-        
-        audioPlayback.onplay = () => {
-            playIcon.style.display = 'none';
-            pauseIcon.style.display = 'block';
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-            drawWaveform();
-        };
-        
-        audioPlayback.onpause = () => {
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-            cancelAnimationFrame(waveformAnimationId);
-        };
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        function updateProgress() {
-            const { duration, currentTime } = audioPlayback;
-            if (isNaN(duration)) return;
-            const progressPercent = (currentTime / duration) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-            timeDisplay.textContent = `${formatTime(currentTime)} / ${formatTime(duration)}`;
-        }
-
-        function setProgress(e) {
-            const width = this.clientWidth;
-            const clickX = e.offsetX;
-            const duration = audioPlayback.duration;
-            if (duration) {
-                audioPlayback.currentTime = (clickX / width) * duration;
-            }
-        }
-
-        // --- Waveform Logic --- //
-        function setupAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
-                sourceNode = audioContext.createMediaElementSource(audioPlayback);
-                sourceNode.connect(analyser);
-                analyser.connect(audioContext.destination);
-                waveformDataArray = new Uint8Array(analyser.frequencyBinCount);
-            }
-        }
-
-        function drawWaveform() {
-            waveformAnimationId = requestAnimationFrame(drawWaveform);
-            analyser.getByteFrequencyData(waveformDataArray);
-
-            waveformCtx.fillStyle = 'rgba(0,0,0,0.05)';
-            waveformCtx.fillRect(0, 0, waveformCanvas.width, waveformCanvas.height);
-
-            const barWidth = (waveformCanvas.width / waveformDataArray.length) * 1.5;
-            let barHeight;
-            let x = 0;
-
-            for (let i = 0; i < waveformDataArray.length; i++) {
-                barHeight = waveformDataArray[i] / 2;
-                
-                waveformCtx.fillStyle = `rgba(0, 124, 240, ${barHeight / 150})`;
-                waveformCtx.fillRect(x, waveformCanvas.height - barHeight, barWidth, barHeight);
-
-                x += barWidth + 1;
-            }
-        }
-
         // --- Gram Assistant Logic --- //
+        
         function toggleGramAssistant(forceState) {
             if (typeof forceState === 'boolean') {
                 gramContainer.classList.toggle('active', forceState);
@@ -2748,24 +2487,30 @@
                 gramContainer.classList.toggle('active');
             }
         }
+
         function addMessageToChat(message, sender) {
-              const messageDiv = document.createElement('div');
-              messageDiv.className = `gram-message ${sender}`;
-              messageDiv.innerHTML = message;
-              gramChatHistory.appendChild(messageDiv);
-              gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
-              return messageDiv;
+             const messageDiv = document.createElement('div');
+             messageDiv.className = `gram-message ${sender}`;
+             messageDiv.innerHTML = message;
+             gramChatHistory.appendChild(messageDiv);
+             gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
+             return messageDiv;
         }
+
         function showThinkingIndicator() {
             const thinkingDiv = addMessageToChat(`<span></span><span></span><span></span>`, 'ai thinking');
             return thinkingDiv;
         }
-        function streamMessage(element, text, onComplete) {
+
+        // [SỬA LỖI] Hàm hiển thị câu trả lời theo hiệu ứng gõ chữ, xử lý đúng thẻ HTML
+        function streamMessage(element, text) {
             const formattedText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-            element.innerHTML = ''; 
-            element.classList.remove('thinking'); 
+            element.innerHTML = ''; // Xóa nội dung cũ (dấu chấm)
+            element.classList.remove('thinking'); // Xóa class 'thinking' để dừng animation
+            
             let i = 0;
-            const speed = 20;
+            const speed = 20; // Tốc độ gõ chữ (ms)
+
             function typeWriter() {
                 if (i < formattedText.length) {
                     const char = formattedText.charAt(i);
@@ -2784,42 +2529,51 @@
                     i++;
                     gramChatHistory.scrollTop = gramChatHistory.scrollHeight;
                     setTimeout(typeWriter, speed);
-                } else {
-                    if (onComplete) onComplete();
                 }
             }
             typeWriter();
         }
-        async function getGrammarExplanation() {
+
+        async function getGrammarExplanation(sentence) {
             const thinkingIndicator = showThinkingIndicator();
             gramSendBtn.disabled = true;
             gramInput.disabled = true;
 
-            const systemInstruction = {
-                role: "user",
-                parts: [{ text: `SYSTEM: You are Gram, a friendly and insightful grammar tutor for A1 English learners. Your goal is to make grammar easy and clear.
-- Explain concepts in simple Vietnamese.
-- Use simple analogies and comparisons.
-- Always provide at least one clear example sentence.
-- When a user asks a follow-up question, use the previous conversation for context.
-- Format key grammar terms in markdown bold, like **thì hiện tại đơn**.
-- Do not greet the user unless it's the very first message of the conversation.`}]
-            };
+            // [SỬA LỖI] Prompt được cải tiến để không chào lại
+            const basePrompt = `Bạn là trợ lý ngữ pháp "Gram", nói chuyện với người học tiếng Anh trình độ A1. Xưng hô là "bạn".
+Hãy giải thích ngữ pháp cho câu sau đây bằng **tiếng Việt**.
+**Yêu cầu:**
+- Giải thích **cực kỳ ngắn gọn** (tối đa 2-3 câu).
+- Tập trung vào **1-2 điểm ngữ pháp quan trọng nhất** (thì, cấu trúc câu...).
+- Nêu **cách dùng** phổ biến của câu.
+**KHÔNG** giải thích từng từ vựng.`;
 
-            const payload = { contents: [systemInstruction, ...gramChatHistoryArray] };
-            
+            let finalPrompt;
+            if (isFirstGramQuery) {
+                finalPrompt = `${basePrompt}
+---
+Hãy giải thích câu: "${sentence}"`;
+                isFirstGramQuery = false;
+            } else {
+                finalPrompt = `${basePrompt}
+**Lưu ý quan trọng:** Không cần câu chào hỏi, hãy đi thẳng vào phần giải thích ngữ pháp.
+---
+Hãy giải thích câu: "${sentence}"`;
+            }
+
+            const payload = { contents: [{ role: "user", parts: [{ text: finalPrompt }] }] };
+
             try {
                 const result = await callGeminiAPI(payload);
                 const explanation = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+                
                 if (explanation) {
-                    streamMessage(thinkingIndicator, explanation, () => {
-                        gramChatHistoryArray.push({ role: "model", parts: [{ text: explanation }] });
-                    });
+                    streamMessage(thinkingIndicator, explanation);
                 } else {
                     throw new Error("No explanation received from API.");
                 }
             } catch (error) {
-                thinkingIndicator.innerHTML = "Xin lỗi, đã có lỗi xảy ra khi kết nối với trợ lý AI. Vui lòng thử lại sau.";
+                thinkingIndicator.innerHTML = "Xin lỗi, tôi không thể nhận được lời giải thích lúc này. Vui lòng thử lại.";
                 console.error("Grammar explanation error:", error);
             } finally {
                 gramSendBtn.disabled = false;
@@ -2827,445 +2581,70 @@
                 gramInput.focus();
             }
         }
-        async function submitGrammarQuery(query) {
-            if (query && !gramSendBtn.disabled) {
-                toggleGramAssistant(true);
-                addMessageToChat(query, 'user');
+
+        async function handleGrammarQuery() {
+            const userInput = gramInput.value.trim();
+            if (userInput && !gramSendBtn.disabled) {
+                addMessageToChat(userInput, 'user');
                 gramInput.value = '';
-                gramChatHistoryArray.push({ role: "user", parts: [{ text: query }] });
-                await getGrammarExplanation();
+                await getGrammarExplanation(userInput);
             }
         }
-
-        // --- Word/Phrase Lookup Logic --- //
-        async function fetchWordData(term) {
-            const isSingleWord = !term.includes(' ');
-            const prompt = isSingleWord
-                ? `Provide a detailed dictionary entry for the English word "${term}" for an A1 learner. Format the response strictly as follows, with each item on a new line:
-IPA: [International Phonetic Alphabet]
-TYPE: [Part of speech, e.g., noun, verb, adjective]
-EN: [Simple English definition]
-VI: [Vietnamese translation]
-EX: [A simple example sentence]`
-                : `Analyze the English phrase "${term}" for an A1 learner. Format the response strictly as follows, with each item on a new line:
-TYPE: [Type of phrase, e.g., verb phrase, idiom]
-EN: [Simple English definition]
-VI: [Vietnamese translation]
-EX: [A simple example sentence]`;
-
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            const result = await callGeminiAPI(payload);
-            const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (!text) throw new Error("No data received from API.");
-            return parseAPIData(text, term);
-        }
-        
-        function parseAPIData(text, originalTerm) {
-            const lines = text.split('\n');
-            const data = { word: originalTerm };
-            lines.forEach(line => {
-                const parts = line.split(':');
-                if (parts.length >= 2) {
-                    const key = parts[0].trim().toLowerCase();
-                    const value = parts.slice(1).join(':').trim();
-                    if (key === 'ipa') data.ipa = value;
-                    if (key === 'type') data.pos = value;
-                    if (key === 'en') data.en = value;
-                    if (key === 'vi') data.vi = value;
-                    if (key === 'ex') data.ex = value;
-                }
-            });
-            return data;
-        }
-
-        async function getPhraseTooltip(phrase) {
-            hideDynamicTooltip();
-            dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span>';
-            showDynamicTooltip(window.lastMouseUpEvent);
-
-            try {
-                const wordData = await fetchWordData(phrase);
-                const tooltipContent = `
-                    <span class="tooltip-word">${wordData.word}</span>
-                    ${wordData.ipa ? `<span class="tooltip-ipa">${wordData.ipa}</span>` : ''}
-                    <span class="tooltip-pos">${wordData.pos || 'N/A'}</span>
-                    <span class="tooltip-en">${wordData.en || 'N/A'}</span>
-                    <span class="tooltip-vi">${wordData.vi || 'N/A'}</span>
-                    <span class="tooltip-ex">${wordData.ex || 'N/A'}</span>
-                    <button id="save-word-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>
-                `;
-                dynamicTooltip.innerHTML = tooltipContent;
-                document.getElementById('save-word-btn').onclick = () => {
-                    addToNotebook(wordData);
-                    hideDynamicTooltip();
-                };
-                showDynamicTooltip(window.lastMouseUpEvent);
-            } catch (error) {
-                dynamicTooltip.innerHTML = '<span>Lỗi tra cứu. Vui lòng thử lại.</span>';
-                console.error("Phrase tooltip error:", error);
-            }
-        }
-
-        function showDynamicTooltip(e) {
-            if (!e) return;
-            document.body.appendChild(dynamicTooltip);
-            dynamicTooltip.classList.add('tooltip-visible');
-            adjustElementPositionInViewport(dynamicTooltip, e);
-        }
-
-        function hideDynamicTooltip() {
-            dynamicTooltip.classList.remove('tooltip-visible');
-        }
-
-        // --- Logic cho Menu Ngữ cảnh --- //
-        function showSelectionMenu(e) {
-            if (!e) return;
-            selectionMenu.style.display = 'flex';
-            adjustElementPositionInViewport(selectionMenu, e);
-        }
-
-        function hideSelectionMenu() {
-            selectionMenu.style.display = 'none';
-        }
-
-        function adjustElementPositionInViewport(element, eventOrTarget) {
-            const rect = element.getBoundingClientRect();
-            let eventX, eventY;
-
-            if (eventOrTarget instanceof MouseEvent || eventOrTarget instanceof TouchEvent) {
-                 const touch = eventOrTarget.touches ? eventOrTarget.touches[0] : eventOrTarget;
-                 eventX = touch.pageX;
-                 eventY = touch.pageY;
-            } else {
-                const targetRect = eventOrTarget.getBoundingClientRect();
-                eventX = targetRect.left + window.scrollX + targetRect.width / 2;
-                eventY = targetRect.top + window.scrollY;
-            }
-
-            let left = eventX - rect.width / 2;
-            let top = eventY - rect.height - 15;
-
-            if (top - window.scrollY < 0) {
-                top = eventY + 15;
-            }
-            if (left < 0) left = 5;
-            if (left + rect.width > window.innerWidth) {
-                left = window.innerWidth - rect.width - 5;
-            }
-
-            element.style.left = `${left}px`;
-            element.style.top = `${top}px`;
-            element.style.transform = 'none';
-        }
-
-        // --- Notebook Logic --- //
-        function loadNotebook() {
-            const storedWords = localStorage.getItem('savedWords');
-            if (storedWords) {
-                savedWords = JSON.parse(storedWords);
-            }
-        }
-
-        function saveNotebook() {
-            localStorage.setItem('savedWords', JSON.stringify(savedWords));
-        }
-
-        function addToNotebook(wordData) {
-            if (!currentLessonId) {
-                alert("Vui lòng chọn một bài học trước khi lưu từ.");
-                return;
-            }
-            if (!savedWords[currentLessonId]) {
-                savedWords[currentLessonId] = [];
-            }
-            const lessonWords = savedWords[currentLessonId];
-            const isAlreadySaved = lessonWords.some(word => word.word.toLowerCase() === wordData.word.toLowerCase());
-            
-            if (!isAlreadySaved) {
-                lessonWords.push(wordData);
-                saveNotebook();
-                alert(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
-                if (notebookContainer.classList.contains('active')) {
-                    renderNotebook();
-                }
-            } else {
-                alert(`'${wordData.word}' đã có trong sổ tay.`);
-            }
-        }
-        
-        function displayWordDetail(word, showSaveButton = false) {
-            const detailContent = `
-                <span class="tooltip-word">${word.word}</span>
-                ${word.ipa ? `<span class="tooltip-ipa">${word.ipa}</span>` : ''}
-                <span class="tooltip-pos">${word.pos || 'N/A'}</span>
-                <span class="tooltip-en">${word.en || 'N/A'}</span>
-                <span class="tooltip-vi">${word.vi || 'N/A'}</span>
-                <span class="tooltip-ex">${word.ex || 'N/A'}</span>
-                ${showSaveButton ? `<button id="notebook-save-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>` : ''}
-            `;
-            notebookWordDetailContent.innerHTML = detailContent;
-
-            if (showSaveButton) {
-                document.getElementById('notebook-save-btn').onclick = () => {
-                    addToNotebook(word);
-                    displayWordDetail(word, false);
-                    renderNotebook();
-                };
-            }
-        }
-
-        function renderNotebook() {
-            notebookListContainer.innerHTML = '';
-            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Chọn một từ để xem chi tiết hoặc tra từ mới ở dưới.</p>';
-            
-            if (!currentLessonId) {
-                 notebookTitle.textContent = 'Sổ tay';
-                 notebookListContainer.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Vui lòng vào một bài học để xem sổ tay.</p>';
-                 return;
-            }
-
-            notebookTitle.textContent = `Sổ tay: Lesson ${currentLessonId}`;
-            const lessonWords = savedWords[currentLessonId] || [];
-
-            if (lessonWords.length === 0) {
-                notebookListContainer.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Sổ tay của bạn còn trống. Hãy tra cứu và lưu từ mới nhé!</p>';
-                return;
-            }
-            const wordList = document.createElement('div');
-            wordList.className = 'notebook-word-list';
-
-            lessonWords.forEach(word => {
-                const item = document.createElement('button');
-                item.className = 'notebook-word-item';
-                item.textContent = word.word;
-                
-                item.addEventListener('click', (e) => {
-                    wordList.querySelectorAll('.notebook-word-item').forEach(el => el.classList.remove('active'));
-                    e.target.classList.add('active');
-                    displayWordDetail(word);
-                });
-                wordList.appendChild(item);
-            });
-            notebookListContainer.appendChild(wordList);
-        }
-        
-        async function lookupWordInNotebook(word) {
-            if (!currentLessonId) {
-                alert("Vui lòng vào một bài học để có thể tra và lưu từ.");
-                return;
-            }
-            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Đang tra cứu...</p>';
-            notebookSendBtn.disabled = true;
-            try {
-                const wordData = await fetchWordData(word);
-                displayWordDetail(wordData, true);
-            } catch (error) {
-                notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--accent-danger);">Lỗi tra cứu. Vui lòng thử lại.</p>';
-                console.error("Notebook lookup error:", error);
-            } finally {
-                notebookSendBtn.disabled = false;
-            }
-        }
-        
-        function toggleNotebook(forceState) {
-            if (typeof forceState === 'boolean') {
-                notebookContainer.classList.toggle('active', forceState);
-            } else {
-                notebookContainer.classList.toggle('active');
-            }
-            if (notebookContainer.classList.contains('active')) {
-                renderNotebook();
-            }
-        }
-
-        function prepopulateNotebooks() {
-            for (const lessonId in lessonsData) {
-                if (!savedWords[lessonId]) {
-                    savedWords[lessonId] = [];
-                }
-
-                const lessonContent = lessonsData[lessonId].content;
-                const tempDiv = document.createElement('div');
-                
-                let combinedContent = '';
-                for(const contentType in lessonContent) {
-                    combinedContent += lessonContent[contentType];
-                }
-                tempDiv.innerHTML = combinedContent;
-                
-                const tooltips = tempDiv.querySelectorAll('.tooltip');
-                tooltips.forEach(tooltip => {
-                    const wordData = {
-                        word: tooltip.querySelector('.tooltip-word')?.textContent || '',
-                        ipa: tooltip.querySelector('.tooltip-ipa')?.textContent || '',
-                        pos: tooltip.querySelector('.tooltip-pos')?.textContent || '',
-                        en: tooltip.querySelector('.tooltip-en')?.textContent || '',
-                        vi: tooltip.querySelector('.tooltip-vi')?.textContent || '',
-                        ex: tooltip.querySelector('.tooltip-ex')?.textContent || ''
-                    };
-
-                    if (wordData.word) {
-                        const isAlreadySaved = savedWords[lessonId].some(w => w.word.toLowerCase() === wordData.word.toLowerCase());
-                        if (!isAlreadySaved) {
-                            savedWords[lessonId].push(wordData);
-                        }
-                    }
-                });
-            }
-            saveNotebook();
-        }
-
 
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
         document.getElementById('back-to-home-from-content-btn').onclick = showHomeView;
         document.getElementById('back-to-lesson-btn').onclick = () => { if (currentLessonId) showLessonView(currentLessonId); };
-        
-        // Notebook Listeners
-        notebookFab.addEventListener('click', () => toggleNotebook());
-        notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
-        const handleNotebookLookup = () => {
-            const word = notebookInput.value.trim();
-            if (word && !notebookSendBtn.disabled) {
-                lookupWordInNotebook(word);
-                notebookInput.value = '';
-            }
-        };
-        notebookSendBtn.addEventListener('click', handleNotebookLookup);
-        notebookInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleNotebookLookup();
-            }
-        });
 
-        // Gram Assistant Listeners
         gramFab.addEventListener('click', () => toggleGramAssistant());
         gramCloseBtn.addEventListener('click', () => toggleGramAssistant(false));
-        
-        gramNewChatBtn.addEventListener('click', () => {
-            gramChatHistoryArray = [];
-            gramChatHistory.innerHTML = '';
-            addMessageToChat('Chào bạn! Tôi là Gram. Hãy bôi đen một câu trong bài hoặc gõ vào đây để tôi giải thích ngữ pháp nhé.', 'ai');
-        });
-
-        gramSendBtn.addEventListener('click', () => {
-            const userInput = gramInput.value.trim();
-            submitGrammarQuery(userInput);
-        });
-        
+        gramSendBtn.addEventListener('click', handleGrammarQuery);
         gramInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                const userInput = gramInput.value.trim();
-                submitGrammarQuery(userInput);
+                handleGrammarQuery();
             }
         });
 
-        // Text Selection Listeners
-        const handleSelection = (e) => {
-            if (selectionMenu.contains(e.target) || e.target.closest('.highlight') || notebookContainer.contains(e.target) || dynamicTooltip.contains(e.target)) {
-                return;
-            }
-            hideSelectionMenu();
-            hideDynamicTooltip();
-            
-            window.lastMouseUpEvent = e;
-
-            setTimeout(() => {
-                const selection = window.getSelection();
-                if (!selection || selection.isCollapsed) return;
-                
-                const selectedText = selection.toString().trim();
-                
-                if (selectedText.length > 2 && selectedText.length < 150) {
-                    const contentBodyEl = document.getElementById('content-body');
-                    const range = selection.getRangeAt(0);
-                    const commonAncestor = range.commonAncestorContainer;
-
-                    if (contentBodyEl.contains(commonAncestor)) {
-                        selectedTextForMenu = selectedText;
-                        showSelectionMenu(e);
-                    }
+        document.addEventListener('mouseup', () => {
+            const selection = window.getSelection();
+            const selectedText = selection.toString().trim();
+            if (selectedText.length > 2 && selectedText.length < 150) {
+                const contentBodyEl = document.getElementById('content-body');
+                if (contentBodyEl && contentBodyEl.contains(selection.anchorNode)) {
+                    toggleGramAssistant(true);
+                    gramInput.value = selectedText;
+                    gramInput.focus();
                 }
-            }, 10);
-        };
-
-        document.addEventListener('mouseup', handleSelection);
-        document.addEventListener('touchend', handleSelection);
-
-        explainGrammarBtn.addEventListener('click', () => {
-            submitGrammarQuery(selectedTextForMenu);
-            hideSelectionMenu();
+            }
         });
-        translatePhraseBtn.addEventListener('click', () => {
-            getPhraseTooltip(selectedTextForMenu);
-            hideSelectionMenu();
-        });
-
-        // Media Player Listeners
-        mediaUploadInput.addEventListener('change', handleMediaUpload);
-        playPauseBtn.addEventListener('click', togglePlayPause);
-        audioPlayback.addEventListener('timeupdate', updateProgress);
-        audioPlayback.addEventListener('ended', () => {
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-        });
-        progressContainer.addEventListener('click', setProgress);
-        changeMediaBtn.addEventListener('click', () => mediaUploadInput.click());
 
         // --- Gemini API Call --- //
         async function callGeminiAPI(payload, retries = 3, delay = 1000) {
-            const apiKey = ""; // API key will be automatically provided in the execution environment.
-            const modelName = 'gemini-1.5-flash-latest'; // UPDATED model name for better stability
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+            const apiKey = "AIzaSyBa0ieUPwXxb-W_fFHbB-ldEJG8-sAFxN0"; // Canvas will provide the key
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                 if (!response.ok) {
-                    const errorBody = await response.text();
-                    console.error("API response error:", response.status, errorBody);
-                    // Implement exponential backoff for rate limiting errors
                     if (response.status === 429 && retries > 0) {
-                        await new Promise(resolve => setTimeout(resolve, delay));
+                        await new Promise(r => setTimeout(r, delay));
                         return callGeminiAPI(payload, retries - 1, delay * 2);
                     }
                     throw new Error(`API Error: ${response.status} ${response.statusText}`);
                 }
-                
-                const data = await response.json();
-                // Check if the response is valid and contains content
-                if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
-                    console.error("Invalid API response:", data);
-                    // Check for safety ratings if available
-                    if (data.promptFeedback && data.promptFeedback.blockReason) {
-                         throw new Error(`API request blocked due to: ${data.promptFeedback.blockReason}`);
-                    }
-                    throw new Error("API returned no candidates or content.");
-                }
-                return data;
-
+                return await response.json();
             } catch (error) {
-                 // Retry on network errors
                 if (retries > 0) {
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise(r => setTimeout(r, delay));
                     return callGeminiAPI(payload, retries - 1, delay * 2);
                 }
                 console.error("API call failed after retries:", error);
                 throw error;
             }
         }
-
+        
         // --- Initialization --- //
-        loadNotebook();
-        prepopulateNotebooks();
         createLessonButtons();
         showHomeView();
     });

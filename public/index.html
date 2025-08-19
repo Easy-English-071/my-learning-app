@@ -69,6 +69,7 @@
             border: 1px solid var(--glass-border);
             transition: all 0.3s ease-in-out;
             padding: clamp(1rem, 5vw, 2.5rem);
+            position: relative;
         }
         header {
             text-align: center;
@@ -135,7 +136,6 @@
             font-size: 1.1em; font-weight: 700; color: var(--accent-warning);
             margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 1px solid var(--accent-danger);
         }
-        /* [SỬA LỖI] Hoàn nguyên về Flexbox và áp dụng giải pháp chính xác */
         .dialogue-line {
             display: flex;
             align-items: flex-start;
@@ -153,7 +153,7 @@
         }
         .message {
             flex-grow: 1;
-            min-width: 0; /* Thuộc tính quan trọng để sửa lỗi */
+            min-width: 0;
             text-align: left;
             word-break: break-word;
         }
@@ -172,7 +172,7 @@
             position: absolute; background: rgba(249, 249, 249, 0.85);
             -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
             border-radius: 14px; padding: 15px; box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
-            width: 300px; z-index: 100; opacity: 0; visibility: hidden;
+            width: 300px; z-index: 1002; opacity: 0; visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
             pointer-events: none; font-size: 14px; border: 1px solid rgba(0, 0, 0, 0.05);
             text-align: left;
@@ -219,11 +219,9 @@
             margin-top: -0.5rem;
         }
 
-        /* --- Trợ lý Ngữ pháp Gram --- */
-        #gram-assistant-fab {
+        /* --- Sổ tay & Trợ lý FABs --- */
+        .fab {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
             width: 60px;
             height: 60px;
             background-color: var(--accent-primary);
@@ -238,56 +236,27 @@
             outline: none;
             border: none;
         }
-        #gram-assistant-fab:hover {
+        .fab:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 10px 25px var(--shadow-color);
         }
-        #gram-assistant-fab svg {
+        .fab svg {
             width: 30px;
             height: 30px;
             color: white;
         }
-
-        #gram-popup {
-            position: fixed;
-            bottom: calc(2rem + 15px);
-            right: calc(2rem + 75px);
-            background-color: var(--glass-bg);
-            color: var(--text-primary);
-            padding: 0.5rem 1rem;
-            border-radius: var(--radius-sm);
-            box-shadow: 0 4px 15px var(--shadow-color);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(10px);
-            transition: all 0.3s ease-in-out;
-            pointer-events: none;
-            font-size: 0.9rem;
-        }
-        #gram-popup.visible {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-        #gram-popup::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 100%;
-            margin-top: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: transparent transparent transparent var(--glass-bg);
-        }
-
-        #gram-assistant-container {
-            position: fixed;
-            bottom: calc(2rem + 70px);
+        #gram-assistant-fab {
+            bottom: 2rem;
             right: 2rem;
+        }
+        #notebook-fab {
+            bottom: 2rem;
+            left: 2rem;
+            background-color: var(--accent-warning);
+        }
+
+        .popup-container {
+            position: fixed;
             width: 90%;
             max-width: 400px;
             height: 70%;
@@ -306,13 +275,22 @@
             transform: translateY(20px) scale(0.95);
             transition: all 0.3s ease-in-out;
         }
-        #gram-assistant-container.active {
+        .popup-container.active {
             opacity: 1;
             visibility: visible;
             transform: translateY(0) scale(1);
         }
+        #gram-assistant-container {
+            bottom: calc(2rem + 70px);
+            right: 2rem;
+        }
+        #notebook-container {
+            bottom: calc(2rem + 70px);
+            left: 2rem;
+            max-width: 700px; /* Rộng hơn để chứa 2 cột */
+        }
         
-        .gram-header {
+        .popup-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -321,82 +299,60 @@
             border-bottom: 1px solid var(--glass-border);
             flex-shrink: 0;
         }
-        .gram-header h3 { color: var(--accent-primary); font-size: 1.2rem; margin: 0; }
+        .popup-header h3 { font-size: 1.2rem; margin: 0; }
+        #gram-assistant-container .popup-header h3 { color: var(--accent-primary); }
+        #notebook-container .popup-header h3 { color: var(--accent-warning); }
         
-        .gram-header-buttons {
+        .popup-header-buttons {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        #gram-new-chat-btn, #gram-close-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            color: var(--text-secondary);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s, color 0.2s;
+        .popup-header-btn {
+            background: none; border: none; cursor: pointer; padding: 0;
+            color: var(--text-secondary); width: 32px; height: 32px;
+            border-radius: 50%; display: flex; align-items: center;
+            justify-content: center; transition: background-color 0.2s, color 0.2s;
         }
-        #gram-new-chat-btn:hover, #gram-close-btn:hover {
+        .popup-header-btn:hover {
             background-color: var(--btn-secondary-hover-bg);
             color: var(--text-primary);
         }
-        #gram-new-chat-btn svg {
-            width: 20px;
-            height: 20px;
+        .popup-close-btn {
+            font-size: 1.5rem; line-height: 1;
         }
-        #gram-close-btn {
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
+        
         #gram-chat-history {
             flex-grow: 1;
             overflow-y: auto;
             padding: 0.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
         }
         #gram-chat-history::-webkit-scrollbar { width: 6px; }
         #gram-chat-history::-webkit-scrollbar-track { background: transparent; }
         #gram-chat-history::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 3px; }
 
         .gram-message {
-            padding: 0.75rem 1rem;
-            border-radius: var(--radius-md);
-            max-width: 90%;
-            line-height: 1.6;
-            word-wrap: break-word;
+            padding: 0.75rem 1rem; border-radius: var(--radius-md);
+            max-width: 90%; line-height: 1.6; word-wrap: break-word;
+            margin-bottom: 1rem;
         }
         .gram-message.user {
             background-color: rgba(0, 124, 240, 0.2);
-            align-self: flex-end;
-            border-bottom-right-radius: 0.25rem;
+            align-self: flex-end; border-bottom-right-radius: 0.25rem;
         }
         .gram-message.ai {
             background-color: rgba(255, 255, 255, 0.4);
-            align-self: flex-start;
-            border-bottom-left-radius: 0.25rem;
+            align-self: flex-start; border-bottom-left-radius: 0.25rem;
             border: 1px solid var(--glass-border);
         }
         .gram-message.ai strong { color: var(--accent-primary); }
         .gram-message.ai code { background-color: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; }
         
         .gram-message.thinking span {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--text-secondary);
-            animation: typing-dots 1.4s infinite;
-            animation-fill-mode: both;
+            display: inline-block; width: 8px; height: 8px;
+            border-radius: 50%; background-color: var(--text-secondary);
+            animation: typing-dots 1.4s infinite; animation-fill-mode: both;
         }
         .gram-message.thinking span:nth-child(2) { animation-delay: 0.2s; }
         .gram-message.thinking span:nth-child(3) { animation-delay: 0.4s; }
@@ -406,59 +362,99 @@
             100% { opacity: 0.2; transform: scale(0.8); }
         }
 
-        .gram-input-area {
+        .input-area {
             display: flex;
             margin-top: 1rem;
             gap: 0.5rem;
             flex-shrink: 0;
         }
-        #gram-input {
-            flex-grow: 1;
-            border: 1px solid var(--glass-border);
+        .input-area input {
+            flex-grow: 1; border: 1px solid var(--glass-border);
             background-color: rgba(255, 255, 255, 0.5);
-            border-radius: var(--radius-sm);
-            padding: 0.75rem;
-            font-family: var(--font-family);
-            font-size: 0.9rem;
+            border-radius: var(--radius-sm); padding: 0.75rem;
+            font-family: var(--font-family); font-size: 0.9rem;
             transition: all 0.2s;
         }
-        #gram-input:focus {
+        .input-area input:focus {
             outline: none;
-            border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(0, 124, 240, 0.2);
         }
-        #gram-send-btn { flex-shrink: 0; padding: 0.75rem; }
-        #gram-send-btn svg { width: 20px; height: 20px; }
+        #gram-input:focus { border-color: var(--accent-primary); }
+        #notebook-input:focus { border-color: var(--accent-warning); }
+        
+        .input-area button { flex-shrink: 0; padding: 0.75rem; }
+        .input-area button svg { width: 20px; height: 20px; }
+        #notebook-send-btn { background-color: var(--accent-warning); }
+        #notebook-send-btn:hover { background-color: #d97706; }
 
         #selection-menu {
-            position: absolute;
-            background-color: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
+            position: absolute; background-color: var(--glass-bg);
+            border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
             box-shadow: 0 4px 15px var(--shadow-color);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            z-index: 1002;
-            padding: 0.5rem;
-            display: none;
-            gap: 0.5rem;
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            z-index: 1002; padding: 0.5rem; display: none; gap: 0.5rem;
         }
         .selection-menu-btn {
-            background: none;
-            border: none;
-            padding: 0.5rem 0.75rem;
-            cursor: pointer;
-            border-radius: 0.5rem;
-            font-family: var(--font-family);
-            font-size: 0.9rem;
-            color: var(--text-primary);
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
+            background: none; border: none; padding: 0.5rem 0.75rem;
+            cursor: pointer; border-radius: 0.5rem;
+            font-family: var(--font-family); font-size: 0.9rem;
+            color: var(--text-primary); transition: background-color 0.2s;
+            display: flex; align-items: center; gap: 0.25rem;
         }
         .selection-menu-btn:hover {
             background-color: var(--btn-secondary-hover-bg);
+        }
+        
+        /* [CẬP NHẬT] Giao diện Sổ tay */
+        #notebook-content {
+            display: flex;
+            gap: 1.5rem;
+            flex-grow: 1;
+            min-height: 0;
+        }
+        #notebook-list-container {
+            flex-basis: 40%;
+            border-right: 1px solid var(--glass-border);
+            padding-right: 1.5rem;
+            overflow-y: auto;
+        }
+        #notebook-detail-view {
+            flex-basis: 60%;
+            display: flex;
+            flex-direction: column;
+        }
+        #notebook-word-detail-content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        #notebook-word-detail-content span {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .notebook-word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+        .notebook-word-item {
+            background-color: var(--btn-secondary-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: var(--font-family);
+            font-size: 0.9rem;
+        }
+        .notebook-word-item:hover {
+            background-color: var(--btn-secondary-hover-bg);
+            transform: translateY(-2px);
+        }
+        .notebook-word-item.active {
+            background-color: var(--accent-warning);
+            color: white;
+            border-color: var(--accent-warning);
         }
 
         /* --- Responsive --- */
@@ -473,18 +469,27 @@
             h2 { font-size: 1.5rem; }
             #lesson-list { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.75rem; }
             #content-body { height: auto; max-height: 40vh; }
-            #gram-assistant-fab { width: 50px; height: 50px; bottom: 1rem; right: 1rem;}
-            #gram-assistant-fab svg { width: 24px; height: 24px; }
-            #gram-assistant-container {
+            .fab { width: 50px; height: 50px; }
+            .fab svg { width: 24px; height: 24px; }
+            #gram-assistant-fab { bottom: 1rem; right: 1rem; }
+            #notebook-fab { bottom: 1rem; left: 1rem; }
+            
+            .popup-container {
                 bottom: calc(1rem + 60px);
-                right: 1rem;
                 left: 1rem;
+                right: 1rem;
                 width: auto;
                 max-width: none;
             }
-            #gram-popup {
-                bottom: calc(1rem + 15px);
-                right: calc(1rem + 65px);
+            #notebook-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            #notebook-list-container {
+                flex-basis: auto;
+                border-right: none;
+                padding-right: 0;
+                max-height: 150px;
             }
             .dialogue-line {
                 font-size: 0.95rem;
@@ -564,23 +569,45 @@
         </main>
     </div>
 
-    <!-- Gram Assistant -->
-    <div id="gram-assistant-wrapper">
-        <button id="gram-assistant-fab" title="Grammar Assistant">
+    <!-- FABs và Popups -->
+    <div id="fab-container">
+        <button id="notebook-fab" class="fab" title="Sổ tay từ vựng">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        </button>
+        <button id="gram-assistant-fab" class="fab" title="Trợ lý ngữ pháp">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
             </svg>
         </button>
-        <div id="gram-popup">Hỏi tôi về ngữ pháp!</div>
     </div>
-    <div id="gram-assistant-container">
-        <div class="gram-header">
-            <h3>Gram Assistant</h3>
-            <div class="gram-header-buttons">
-                <button id="gram-new-chat-btn" title="Hội thoại mới">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+
+    <div id="notebook-container" class="popup-container">
+        <div class="popup-header">
+            <h3 id="notebook-title">Sổ tay</h3>
+            <button id="notebook-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
+        </div>
+        <div id="notebook-content">
+            <div id="notebook-list-container"></div>
+            <div id="notebook-detail-view">
+                <div id="notebook-word-detail-content"></div>
+                <div class="input-area" id="notebook-input-area">
+                    <input type="text" id="notebook-input" placeholder="Tra từ mới...">
+                    <button id="notebook-send-btn" class="btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gram-assistant-container" class="popup-container">
+        <div class="popup-header">
+            <h3>Trợ lý Gram</h3>
+            <div class="popup-header-buttons">
+                <button id="gram-new-chat-btn" class="popup-header-btn" title="Hội thoại mới">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
                 </button>
-                <button id="gram-close-btn">&times;</button>
+                <button id="gram-close-btn" class="popup-header-btn popup-close-btn">&times;</button>
             </div>
         </div>
         <div id="gram-chat-history">
@@ -588,12 +615,10 @@
                Chào bạn! Tôi là Gram. Hãy bôi đen một câu trong bài hoặc gõ vào đây để tôi giải thích ngữ pháp nhé.
            </div>
         </div>
-        <div class="gram-input-area">
+        <div class="input-area gram-input-area">
             <input type="text" id="gram-input" placeholder="Hỏi về một câu...">
             <button id="gram-send-btn" class="btn btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
-                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
             </button>
         </div>
     </div>
@@ -2236,7 +2261,7 @@
     </div>
 
     <div class="section-block">
-        <div class="section-title">What are your exercise tips?</div>
+        <div class="main-container"><div class="conversation-block"><div class="conversation-title">What are your exercise tips?</div>
         <div class="dialogue-line">
             <span class="speaker">Gaia:</span>
             <span class="message">Drink lots of <span class="highlight">water<span class="tooltip"><span class="tooltip-word">water</span><span class="tooltip-ipa">/ˈwɔː.tər/</span><span class="tooltip-pos">noun</span><span class="tooltip-en">A clear liquid that has no colour, taste, or smell.</span><span class="tooltip-vi">Nước.</span><span class="tooltip-ex">You should drink lots of water.</span></span></span> and wear good <span class="highlight">trousers<span class="tooltip"><span class="tooltip-word">trousers</span><span class="tooltip-ipa">/ˈtraʊ.zəz/</span><span class="tooltip-pos">noun</span><span class="tooltip-en">A piece of clothing that covers the lower part of the body, with a separate part for each leg.</span><span class="tooltip-vi">Quần dài.</span><span class="tooltip-ex">Wear good trousers for yoga.</span></span></span>.</span>
@@ -2430,7 +2455,11 @@
         };
 
         // --- DOM Elements --- //
-        const views = { home: document.getElementById('home-view'), lesson: document.getElementById('lesson-view'), content: document.getElementById('content-view') };
+        const views = { 
+            home: document.getElementById('home-view'), 
+            lesson: document.getElementById('lesson-view'), 
+            content: document.getElementById('content-view')
+        };
         const lessonList = document.getElementById('lesson-list');
         const lessonTitle = document.getElementById('lesson-title');
         const lessonMenu = document.getElementById('lesson-menu');
@@ -2441,12 +2470,11 @@
         const gramFab = document.getElementById('gram-assistant-fab');
         const gramContainer = document.getElementById('gram-assistant-container');
         const gramCloseBtn = document.getElementById('gram-close-btn');
+        const gramNewChatBtn = document.getElementById('gram-new-chat-btn');
         const gramChatHistory = document.getElementById('gram-chat-history');
         const gramInput = document.getElementById('gram-input');
         const gramSendBtn = document.getElementById('gram-send-btn');
-        const gramPopup = document.getElementById('gram-popup');
-        const gramNewChatBtn = document.getElementById('gram-new-chat-btn');
-
+        
         const selectionMenu = document.getElementById('selection-menu');
         const dynamicTooltip = document.getElementById('dynamic-tooltip');
         const explainGrammarBtn = document.getElementById('explain-grammar-btn');
@@ -2469,12 +2497,24 @@
         const waveformCtx = waveformCanvas.getContext('2d');
         const changeMediaBtn = document.getElementById('change-media-btn');
 
+        // Notebook elements
+        const notebookFab = document.getElementById('notebook-fab');
+        const notebookContainer = document.getElementById('notebook-container');
+        const notebookCloseBtn = document.getElementById('notebook-close-btn');
+        const notebookListContainer = document.getElementById('notebook-list-container');
+        const notebookDetailView = document.getElementById('notebook-detail-view');
+        const notebookWordDetailContent = document.getElementById('notebook-word-detail-content');
+        const notebookInput = document.getElementById('notebook-input');
+        const notebookSendBtn = document.getElementById('notebook-send-btn');
+        const notebookTitle = document.getElementById('notebook-title');
+
         // --- State Management --- //
         let currentLessonId = null;
         let currentContentKey = null;
         let selectedTextForMenu = '';
         let gramChatHistoryArray = [];
         let mediaState = {}; 
+        let savedWords = {};
 
         // Waveform state
         let audioContext;
@@ -2487,7 +2527,7 @@
         // --- View Management --- //
         function showView(viewId) {
             Object.values(views).forEach(view => view.classList.remove('active'));
-            views[viewId].classList.add('active');
+            if(views[viewId]) views[viewId].classList.add('active');
         }
         function showHomeView() { showView('home'); }
         function showLessonView(lessonId) {
@@ -2499,7 +2539,10 @@
             Object.keys(lessonData.content).forEach(key => {
                 const btn = document.createElement('button');
                 btn.className = 'btn btn-secondary';
-                btn.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                let btnText = key.charAt(0).toUpperCase() + key.slice(1);
+                if (key === 'audioscript') btnText = 'Audio Script';
+                if (key === 'videoscript') btnText = 'Video Script';
+                btn.innerHTML = btnText;
                 btn.onclick = () => showContentView(lessonId, key);
                 lessonMenu.appendChild(btn);
             });
@@ -2508,6 +2551,7 @@
         function showContentView(lessonId, contentKey) {
             currentLessonId = lessonId;
             currentContentKey = contentKey;
+            
             const lessonData = lessonsData[lessonId];
             const content = lessonData.content[contentKey];
             contentTitle.textContent = `${lessonData.title} - ${contentKey.charAt(0).toUpperCase() + contentKey.slice(1)}`;
@@ -2561,7 +2605,7 @@
             }
         }
         
-        // --- [CẬP NHẬT] Media Player Logic --- //
+        // --- Media Player Logic --- //
         function resetMediaPlayer() {
             if (waveformAnimationId) {
                 cancelAnimationFrame(waveformAnimationId);
@@ -2797,7 +2841,7 @@
         // --- Logic cho Tooltip Cụm từ --- //
         async function getPhraseTooltip(phrase) {
             hideDynamicTooltip();
-            dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span>';
+            dynamicTooltip.innerHTML = '<span>Đang tra cứu...</span><button id="save-word-btn" class="selection-menu-btn" style="display:none;">📖 Lưu vào sổ tay</button>';
             showDynamicTooltip(window.lastMouseUpEvent);
 
             const prompt = `Phân tích cụm từ tiếng Anh sau cho người học trình độ A1: "${phrase}".
@@ -2813,14 +2857,26 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                 const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
                 if (text) {
                     const parsed = parseTooltipResponse(text);
+                    const wordData = {
+                        word: phrase,
+                        pos: parsed.TYPE || 'N/A',
+                        en: parsed.EN || 'N/A',
+                        vi: parsed.VI || 'N/A',
+                        ex: parsed.EX || 'N/A'
+                    };
                     const tooltipContent = `
-                        <span class="tooltip-word">${phrase}</span>
-                        <span class="tooltip-pos">${parsed.TYPE || 'N/A'}</span>
-                        <span class="tooltip-en">${parsed.EN || 'N/A'}</span>
-                        <span class="tooltip-vi">${parsed.VI || 'N/A'}</span>
-                        <span class="tooltip-ex">${parsed.EX || 'N/A'}</span>
+                        <span class="tooltip-word">${wordData.word}</span>
+                        <span class="tooltip-pos">${wordData.pos}</span>
+                        <span class="tooltip-en">${wordData.en}</span>
+                        <span class="tooltip-vi">${wordData.vi}</span>
+                        <span class="tooltip-ex">${wordData.ex}</span>
+                        <button id="save-word-btn" class="selection-menu-btn" style="margin-top: 10px;">📖 Lưu vào sổ tay</button>
                     `;
                     dynamicTooltip.innerHTML = tooltipContent;
+                    document.getElementById('save-word-btn').onclick = () => {
+                        addToNotebook(wordData);
+                        hideDynamicTooltip();
+                    };
                     showDynamicTooltip(window.lastMouseUpEvent);
                 } else {
                     throw new Error("No data for phrase tooltip.");
@@ -2897,10 +2953,128 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
             element.style.transform = 'none';
         }
 
+        // --- Notebook Logic --- //
+        function loadNotebook() {
+            const storedWords = localStorage.getItem('savedWords');
+            if (storedWords) {
+                savedWords = JSON.parse(storedWords);
+            }
+        }
+
+        function saveNotebook() {
+            localStorage.setItem('savedWords', JSON.stringify(savedWords));
+        }
+
+        function addToNotebook(wordData) {
+            if (!savedWords[currentLessonId]) {
+                savedWords[currentLessonId] = [];
+            }
+            const lessonWords = savedWords[currentLessonId];
+            const isAlreadySaved = lessonWords.some(word => word.word.toLowerCase() === wordData.word.toLowerCase());
+            
+            if (!isAlreadySaved) {
+                lessonWords.push(wordData);
+                saveNotebook();
+                alert(`'${wordData.word}' đã được lưu vào sổ tay Lesson ${currentLessonId}!`);
+            } else {
+                alert(`'${wordData.word}' đã có trong sổ tay.`);
+            }
+        }
+
+        function renderNotebook() {
+            notebookListContainer.innerHTML = '';
+            notebookWordDetailContent.innerHTML = '<p style="text-align:center; color: var(--text-secondary); margin-top: 2rem;">Chọn một từ để xem chi tiết.</p>';
+            notebookTitle.textContent = `Sổ tay: Lesson ${currentLessonId}`;
+            const lessonWords = savedWords[currentLessonId] || [];
+
+            if (lessonWords.length === 0) {
+                notebookListContainer.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Sổ tay của bạn còn trống. Hãy tra cứu và lưu từ mới nhé!</p>';
+                return;
+            }
+            const wordList = document.createElement('div');
+            wordList.className = 'notebook-word-list';
+
+            lessonWords.forEach(word => {
+                const item = document.createElement('button');
+                item.className = 'notebook-word-item';
+                item.textContent = word.word;
+                
+                item.addEventListener('click', (e) => {
+                    wordList.querySelectorAll('.notebook-word-item').forEach(el => el.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    const detailContent = `
+                        <span class="tooltip-word">${word.word}</span>
+                        <span class="tooltip-ipa">${word.ipa}</span>
+                        <span class="tooltip-pos">${word.pos}</span>
+                        <span class="tooltip-en">${word.en}</span>
+                        <span class="tooltip-vi">${word.vi}</span>
+                        <span class="tooltip-ex">${word.ex}</span>
+                    `;
+                    notebookWordDetailContent.innerHTML = detailContent;
+                });
+                wordList.appendChild(item);
+            });
+            notebookListContainer.appendChild(wordList);
+        }
+        
+        function toggleNotebook(forceState) {
+            if (typeof forceState === 'boolean') {
+                notebookContainer.classList.toggle('active', forceState);
+            } else {
+                notebookContainer.classList.toggle('active');
+            }
+            if (notebookContainer.classList.contains('active')) {
+                renderNotebook();
+            }
+        }
+
+        function prepopulateNotebooks() {
+            for (const lessonId in lessonsData) {
+                if (!savedWords[lessonId]) {
+                    savedWords[lessonId] = [];
+                }
+
+                const lessonContent = lessonsData[lessonId].content;
+                const tempDiv = document.createElement('div');
+                
+                let combinedContent = '';
+                for(const contentType in lessonContent) {
+                    combinedContent += lessonContent[contentType];
+                }
+                tempDiv.innerHTML = combinedContent;
+                
+                const tooltips = tempDiv.querySelectorAll('.tooltip');
+                tooltips.forEach(tooltip => {
+                    const wordData = {
+                        word: tooltip.querySelector('.tooltip-word')?.textContent || '',
+                        ipa: tooltip.querySelector('.tooltip-ipa')?.textContent || '',
+                        pos: tooltip.querySelector('.tooltip-pos')?.textContent || '',
+                        en: tooltip.querySelector('.tooltip-en')?.textContent || '',
+                        vi: tooltip.querySelector('.tooltip-vi')?.textContent || '',
+                        ex: tooltip.querySelector('.tooltip-ex')?.textContent || ''
+                    };
+
+                    if (wordData.word) {
+                        const isAlreadySaved = savedWords[lessonId].some(w => w.word.toLowerCase() === wordData.word.toLowerCase());
+                        if (!isAlreadySaved) {
+                            savedWords[lessonId].push(wordData);
+                        }
+                    }
+                });
+            }
+            saveNotebook();
+        }
+
+
         // --- Event Listeners --- //
         document.getElementById('back-to-home-btn').onclick = showHomeView;
         document.getElementById('back-to-home-from-content-btn').onclick = showHomeView;
         document.getElementById('back-to-lesson-btn').onclick = () => { if (currentLessonId) showLessonView(currentLessonId); };
+        
+        // New Listeners
+        notebookFab.addEventListener('click', () => toggleNotebook());
+        notebookCloseBtn.addEventListener('click', () => toggleNotebook(false));
 
         gramFab.addEventListener('click', () => toggleGramAssistant());
         gramCloseBtn.addEventListener('click', () => toggleGramAssistant(false));
@@ -2925,7 +3099,7 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
         });
 
         const handleSelection = (e) => {
-            if (selectionMenu.contains(e.target) || e.target.closest('.highlight')) {
+            if (selectionMenu.contains(e.target) || e.target.closest('.highlight') || notebookContainer.contains(e.target) || dynamicTooltip.contains(e.target)) {
                 return;
             }
             hideSelectionMenu();
@@ -3000,41 +3174,12 @@ EX: [Một câu ví dụ đơn giản sử dụng cụm từ này]`;
                 throw error;
             }
         }
-        
-        // --- Gram Assistant Popup Logic --- //
-        let popupInterval;
-        const popupMessages = [
-            'Tôi là Gram - chuyên gia ngữ pháp!',
-            'Có câu nào khó hiểu? Hỏi Gram nhé!',
-            'Gram có thể giải thích ngữ pháp cho bạn!'
-        ];
-        function showPopup() {
-            if (!gramContainer.classList.contains('active')) {
-                const randomMessage = popupMessages[Math.floor(Math.random() * popupMessages.length)];
-                gramPopup.textContent = randomMessage;
-                gramPopup.classList.add('visible');
-                setTimeout(() => {
-                    gramPopup.classList.remove('visible');
-                }, 5000);
-            }
-        }
-        function startPopupInterval() {
-            if (popupInterval) clearInterval(popupInterval);
-            setTimeout(showPopup, 3000);
-            popupInterval = setInterval(showPopup, 60000); 
-        }
-        gramFab.addEventListener('click', () => {
-            gramPopup.classList.remove('visible');
-            clearInterval(popupInterval);
-        });
-        gramCloseBtn.addEventListener('click', () => {
-            startPopupInterval();
-        });
 
         // --- Initialization --- //
+        loadNotebook();
+        prepopulateNotebooks();
         createLessonButtons();
         showHomeView();
-        startPopupInterval();
     });
     </script>
 </body>

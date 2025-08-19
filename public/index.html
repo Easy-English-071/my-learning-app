@@ -135,22 +135,25 @@
             font-size: 1.1em; font-weight: 700; color: var(--accent-warning);
             margin: 25px 0 15px 0; padding-bottom: 5px; border-bottom: 1px solid var(--accent-danger);
         }
-        /* [SỬA LỖI] Chuyển sang CSS Grid để sửa lỗi dàn trang */
+        /* [SỬA LỖI] Hoàn nguyên về Flexbox và áp dụng giải pháp chính xác */
         .dialogue-line {
-            display: grid;
-            grid-template-columns: 90px 1fr;
-            align-items: start;
-            gap: 1rem;
+            display: flex;
+            align-items: flex-start;
             margin-bottom: 1rem;
         }
         .speaker {
+            flex-shrink: 0;
             font-weight: bold;
             color: #5856D6;
+            width: 90px;
             padding-right: 1rem;
+            margin-right: 1rem;
             border-right: 1px solid rgba(0,0,0,0.1);
             text-align: left;
         }
         .message {
+            flex-grow: 1;
+            min-width: 0; /* Thuộc tính quan trọng để sửa lỗi */
             text-align: left;
             word-break: break-word;
         }
@@ -484,12 +487,12 @@
                 right: calc(1rem + 65px);
             }
             .dialogue-line {
-                grid-template-columns: 70px 1fr;
-                gap: 0.75rem;
                 font-size: 0.95rem;
             }
             .speaker {
+                width: 70px;
                 padding-right: 0.75rem;
+                margin-right: 0.75rem;
             }
         }
     </style>
